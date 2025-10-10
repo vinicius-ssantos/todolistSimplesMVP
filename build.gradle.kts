@@ -38,7 +38,7 @@ dependencies {
 
 
     implementation("org.flywaydb:flyway-core")
-    // já que estamos com H2 + JPA:
+
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("com.h2database:h2:2.2.224")
 
