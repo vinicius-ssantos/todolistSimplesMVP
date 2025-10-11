@@ -1,10 +1,11 @@
 plugins {
     kotlin("jvm") version "1.9.25"
     kotlin("plugin.spring") version "1.9.25"
-    // Lombok para Kotlin
-    kotlin("plugin.lombok") version "1.9.25"
+
     id("org.springframework.boot") version "3.4.10"
     id("io.spring.dependency-management") version "1.1.7"
+
+    kotlin("plugin.jpa") version "1.9.25" // ativa no-arg + all-open para JPA
 }
 
 group = "com.viniss"
@@ -29,13 +30,8 @@ dependencies {
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
-    // Lombok — funciona em Kotlin via plugin acima e em classes Java via annotationProcessor
-    val lombokVersion = "1.18.34"
-    compileOnly("org.projectlombok:lombok:$lombokVersion")
-    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
-    testCompileOnly("org.projectlombok:lombok:$lombokVersion")
-    testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
 
     // Flyway / DB
     implementation("org.flywaydb:flyway-core")
