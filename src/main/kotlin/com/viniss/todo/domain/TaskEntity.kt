@@ -3,6 +3,7 @@ package com.viniss.todo.domain
 
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotBlank
+import lombok.Data
 import java.time.LocalDate
 import java.util.*
 
