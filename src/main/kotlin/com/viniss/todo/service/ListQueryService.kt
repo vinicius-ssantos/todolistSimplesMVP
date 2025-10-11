@@ -1,29 +1,45 @@
 package com.viniss.todo.service
 
-import com.viniss.todo.api.dto.TodoListResponse
-import com.viniss.todo.api.mapper.toResponse
-import com.viniss.todo.repo.TaskRepository
-import com.viniss.todo.repo.TodoListRepository
-import org.springframework.data.domain.Sort
+import com.viniss.todo.domain.TaskEntity
+import com.viniss.todo.domain.TodoListEntity
+import com.viniss.todo.service.model.TaskView
+import com.viniss.todo.service.model.TodoListView
+import com.viniss.todo.service.port.ListQueryUseCase
+import com.viniss.todo.service.port.TodoListReadRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ListQueryService(
-    private val listRepo: TodoListRepository,
-    private val taskRepo: TaskRepository
-) {
+    private val todoListReadRepository: TodoListReadRepository
+) : ListQueryUseCase {
     @Transactional(readOnly = true)
-    fun findAllWithTasks(): List<TodoListResponse> {
-        val lists = listRepo.findAll(Sort.by(Sort.Direction.ASC, "createdAt"))
-        return lists.map { list ->
-            val tasks = taskRepo
-                .findByListIdOrderByPositionAsc(
-                    list.id)
-                .map {
-                    it.toResponse()
-                }
-            list.toResponse(tasks)
-        }
-    }
+    override fun findAllWithTasks(): List<TodoListView> =
+        todoListReadRepository
+            .findAllWithTasksOrdered()
+            .distinctBy { it.id }
+            .sortedBy { it.createdAt }
+            .map { it.toView() }
+
+    private fun TodoListEntity.toView(): TodoListView = TodoListView(
+        id = id,
+        name = name,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+        tasks = tasks
+            .sortedBy(TaskEntity::position)
+            .map { it.toView() }
+    )
+
+    private fun TaskEntity.toView(): TaskView = TaskView(
+        id = id,
+        title = title,
+        notes = notes,
+        priority = priority,
+        status = status,
+        dueDate = dueDate,
+        position = position,
+        createdAt = createdAt,
+        updatedAt = updatedAt
+    )
 }
