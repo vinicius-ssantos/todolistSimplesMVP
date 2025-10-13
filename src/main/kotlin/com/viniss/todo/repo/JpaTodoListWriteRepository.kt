@@ -2,6 +2,7 @@ package com.viniss.todo.repo
 
 import com.viniss.todo.domain.TaskEntity
 import com.viniss.todo.domain.TodoListEntity
+import com.viniss.todo.repo.mapper.EntityMappers
 import com.viniss.todo.service.exception.TodoListNotFoundException
 import com.viniss.todo.service.model.TaskCreationData
 import com.viniss.todo.service.model.TaskView
@@ -13,13 +14,14 @@ import org.springframework.stereotype.Component
 @Component
 class JpaTodoListWriteRepository(
     private val todoListRepository: TodoListRepository,
-    private val taskRepository: TaskRepository
+    private val taskRepository: TaskRepository,
+    private val entityMappers: EntityMappers
 ) : TodoListWriteRepository {
 
     override fun createList(name: String): TodoListView {
         val entity = TodoListEntity(name = name)
         val saved = todoListRepository.save(entity)
-        return saved.toView()
+        return entityMappers.mapToView(saved)
     }
 
     override fun addTask(listId: UUID, task: TaskCreationData): TaskView {
@@ -37,6 +39,6 @@ class JpaTodoListWriteRepository(
         )
 
         val saved = taskRepository.save(taskEntity)
-        return saved.toView()
+        return entityMappers.mapToView(saved)
     }
 }
