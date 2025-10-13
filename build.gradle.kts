@@ -6,6 +6,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 
     kotlin("plugin.jpa") version "1.9.25" // ativa no-arg + all-open para JPA
+    jacoco
 }
 
 group = "com.viniss"
@@ -21,6 +22,7 @@ java {
 repositories {
     mavenCentral()
 }
+
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
@@ -50,6 +52,20 @@ kotlin {
     }
 }
 
-tasks.withType<Test> {
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    finalizedBy(tasks.named("jacocoTestReport"))
+}
+
+tasks.named<JacocoReport>("jacocoTestReport") {
+    dependsOn(tasks.named("test"))
+    reports {
+        xml.required.set(true)
+        csv.required.set(false)
+        html.required.set(true)
+    }
 }
