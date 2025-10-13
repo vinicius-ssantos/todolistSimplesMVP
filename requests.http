@@ -1,0 +1,27 @@
+### List all todo lists
+GET http://localhost:8081/v1/lists
+Accept: application/json
+
+###
+POST http://localhost:8081/v1/lists
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Minha lista 2"
+}
+
+###
+# Substitua {{listId}} pelo UUID retornado ao criar a lista
+POST http://localhost:8081/v1/lists/d7a27219-cfc3-4856-8815-389a0bdbe296/tasks
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Primeira tarefa",
+  "notes": "Anotações opcionais",
+  "priority": "HIGH",
+  "status": "OPEN",
+  "dueDate": "2024-12-31",
+  "position": 0
+}

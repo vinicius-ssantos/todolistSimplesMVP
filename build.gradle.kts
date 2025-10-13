@@ -37,6 +37,7 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     runtimeOnly("com.h2database:h2:2.2.224")
 
+
     // Testes
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")

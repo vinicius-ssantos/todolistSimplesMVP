@@ -14,5 +14,13 @@ interface TodoListRepository : JpaRepository<TodoListEntity, UUID> {
         """
     )
     fun findAllWithTasksOrdered(): List<TodoListEntity>
-}
 
+    @Query(
+        """
+            select list from TodoListEntity list
+            left join fetch list.tasks
+            where list.id = :id
+        """
+    )
+    fun findByIdWithTasks(id: UUID): TodoListEntity?
+}
