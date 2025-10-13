@@ -53,11 +53,14 @@ kotlin {
 }
 
 jacoco {
-    toolVersion = "0.8.12"
+            toolVersion = "0.8.13"
 }
 
 tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
+            useJUnitPlatform()
+}
+
+tasks.named<Test>("test") {
     finalizedBy(tasks.named("jacocoTestReport"))
 }
 
