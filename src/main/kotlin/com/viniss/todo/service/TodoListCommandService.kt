@@ -3,13 +3,18 @@ package com.viniss.todo.service
 import com.viniss.todo.domain.Priority
 import com.viniss.todo.domain.Status
 import com.viniss.todo.service.exception.TodoListNotFoundException
+import com.viniss.todo.service.exception.TaskNotFoundException
 import com.viniss.todo.service.model.CreateTaskCommand
 import com.viniss.todo.service.model.CreateTodoListCommand
+import com.viniss.todo.service.model.UpdateTaskCommand
+import com.viniss.todo.service.model.UpdateTodoListCommand
 import com.viniss.todo.service.model.TaskCreationData
 import com.viniss.todo.service.model.TaskView
 import com.viniss.todo.service.model.TodoListView
 import com.viniss.todo.service.port.CreateTaskUseCase
 import com.viniss.todo.service.port.CreateTodoListUseCase
+import com.viniss.todo.service.port.UpdateTaskUseCase
+import com.viniss.todo.service.port.UpdateTodoListUseCase
 import com.viniss.todo.service.port.TodoListReadRepository
 import com.viniss.todo.service.port.TodoListWriteRepository
 import java.util.UUID
@@ -20,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional
 class TodoListCommandService(
     private val todoListWriteRepository: TodoListWriteRepository,
     private val todoListReadRepository: TodoListReadRepository
-) : CreateTodoListUseCase, CreateTaskUseCase {
+) : CreateTodoListUseCase, CreateTaskUseCase, UpdateTodoListUseCase, UpdateTaskUseCase {
 
     @Transactional
     override fun create(command: CreateTodoListCommand): TodoListView {
@@ -53,5 +58,39 @@ class TodoListCommandService(
         )
 
         return todoListWriteRepository.addTask(listId, taskCreation)
+    }
+
+    @Transactional
+    override fun update(listId: UUID, command: UpdateTodoListCommand): TodoListView {
+        val trimmedName = command.name?.trim()
+        require(trimmedName?.isNotEmpty() == true) { "Todo list name must not be blank" }
+        return todoListWriteRepository.updateList(listId, trimmedName!!)
+    }
+
+    @Transactional
+    override fun update(listId: UUID, taskId: UUID, command: UpdateTaskCommand): TaskView {
+        // Verify list exists
+        todoListReadRepository.findByIdWithTasks(listId)
+            ?: throw TodoListNotFoundException(listId)
+
+        // Build updates map with only non-null values
+        val updates = mutableMapOf<String, Any?>()
+        
+        command.title?.let { 
+            val trimmedTitle = it.trim()
+            require(trimmedTitle.isNotEmpty()) { "Task title must not be blank" }
+            updates["title"] = trimmedTitle
+        }
+        
+        command.notes?.let { updates["notes"] = it.trim().takeIf { it.isNotEmpty() } }
+        command.priority?.let { updates["priority"] = it }
+        command.status?.let { updates["status"] = it }
+        command.dueDate?.let { updates["dueDate"] = it }
+        command.position?.let { 
+            require(it >= 0) { "Task position must be zero or positive" }
+            updates["position"] = it 
+        }
+
+        return todoListWriteRepository.updateTask(listId, taskId, updates)
     }
 }

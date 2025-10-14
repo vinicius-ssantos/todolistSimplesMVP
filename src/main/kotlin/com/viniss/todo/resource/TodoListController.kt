@@ -4,14 +4,20 @@ import com.viniss.todo.api.dto.CreateTaskRequest
 import com.viniss.todo.api.dto.CreateTodoListRequest
 import com.viniss.todo.api.dto.TaskResponse
 import com.viniss.todo.api.dto.TodoListResponse
+import com.viniss.todo.api.dto.UpdateTodoListRequest
+import com.viniss.todo.api.dto.UpdateTaskRequest
 import com.viniss.todo.api.mapper.RequestMapper.toCommand
 import com.viniss.todo.api.mapper.ResponseMapper.toResponse
 import com.viniss.todo.service.port.CreateTaskUseCase
 import com.viniss.todo.service.port.CreateTodoListUseCase
 import com.viniss.todo.service.port.ListQueryUseCase
+import com.viniss.todo.service.port.UpdateTodoListUseCase
+import com.viniss.todo.service.port.UpdateTaskUseCase
 import java.util.UUID
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -24,7 +30,9 @@ import org.springframework.web.bind.annotation.RestController
 class TodoListController(
     private val listQueryUseCase: ListQueryUseCase,
     private val createTodoListUseCase: CreateTodoListUseCase,
-    private val createTaskUseCase: CreateTaskUseCase
+    private val createTaskUseCase: CreateTaskUseCase,
+    private val updateTodoListUseCase: UpdateTodoListUseCase,
+    private val updateTaskUseCase: UpdateTaskUseCase
 ) {
     @GetMapping
     fun getAll(): List<TodoListResponse> =
@@ -42,4 +50,23 @@ class TodoListController(
         @RequestBody request: CreateTaskRequest
     ): TaskResponse =
         createTaskUseCase.create(listId, request.toCommand()).toResponse()
+
+    @PatchMapping("/{listId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun updateList(@PathVariable listId: UUID, @RequestBody body: UpdateTodoListRequest): ResponseEntity<Void> {
+        updateTodoListUseCase.update(listId, body.toCommand())
+        return ResponseEntity.noContent().build()
+    }
+
+    @PatchMapping("/{listId}/tasks/{taskId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun updateTask(
+        @PathVariable listId: UUID,
+        @PathVariable taskId: UUID,
+        @RequestBody request: UpdateTaskRequest
+    ): ResponseEntity<Void> {
+        updateTaskUseCase.update(listId, taskId, request.toCommand())
+        return ResponseEntity.noContent().build()
+    }
+
 }

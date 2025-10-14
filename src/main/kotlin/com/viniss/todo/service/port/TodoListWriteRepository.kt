@@ -8,4 +8,6 @@ import java.util.UUID
 interface TodoListWriteRepository {
     fun createList(name: String): TodoListView
     fun addTask(listId: UUID, task: TaskCreationData): TaskView
+    fun updateList(listId: UUID, name: String): TodoListView
+    fun updateTask(listId: UUID, taskId: UUID, updates: Map<String, Any?>): TaskView
 }
