@@ -13,6 +13,8 @@ import com.viniss.todo.service.model.TaskView
 import com.viniss.todo.service.model.TodoListView
 import com.viniss.todo.service.port.CreateTaskUseCase
 import com.viniss.todo.service.port.CreateTodoListUseCase
+import com.viniss.todo.service.port.DeleteTaskUseCase
+import com.viniss.todo.service.port.DeleteTodoListUseCase
 import com.viniss.todo.service.port.UpdateTaskUseCase
 import com.viniss.todo.service.port.UpdateTodoListUseCase
 import com.viniss.todo.service.port.TodoListReadRepository
@@ -25,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional
 class TodoListCommandService(
     private val todoListWriteRepository: TodoListWriteRepository,
     private val todoListReadRepository: TodoListReadRepository
-) : CreateTodoListUseCase, CreateTaskUseCase, UpdateTodoListUseCase, UpdateTaskUseCase {
+) : CreateTodoListUseCase, CreateTaskUseCase, UpdateTodoListUseCase, UpdateTaskUseCase, DeleteTodoListUseCase, DeleteTaskUseCase {
 
     @Transactional
     override fun create(command: CreateTodoListCommand): TodoListView {
@@ -91,5 +93,19 @@ class TodoListCommandService(
         }
 
         return todoListWriteRepository.updateTask(listId, taskId, updates)
+    }
+
+    @Transactional
+    override fun delete(listId: UUID) {
+        todoListWriteRepository.deleteList(listId)
+    }
+
+    @Transactional
+    override fun delete(listId: UUID, taskId: UUID) {
+        // Verify list exists first
+        todoListReadRepository.findByIdWithTasks(listId)
+            ?: throw TodoListNotFoundException(listId)
+        
+        todoListWriteRepository.deleteTask(listId, taskId)
     }
 }

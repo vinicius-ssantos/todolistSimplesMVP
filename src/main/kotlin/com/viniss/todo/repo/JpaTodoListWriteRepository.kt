@@ -116,4 +116,35 @@ class JpaTodoListWriteRepository(
         // Save all affected tasks
         taskRepository.saveAll(allTasks.filter { it.id != movedTask.id })
     }
+
+    @Transactional
+    override fun deleteList(listId: UUID) {
+        val list = todoListRepository.findById(listId)
+            .orElseThrow { TodoListNotFoundException(listId) }
+        
+        // Delete all tasks first (cascade should handle this, but being explicit)
+        val tasks = taskRepository.findByListIdOrderByPositionAsc(listId)
+        taskRepository.deleteAll(tasks)
+        
+        // Delete the list
+        todoListRepository.delete(list)
+    }
+
+    @Transactional
+    override fun deleteTask(listId: UUID, taskId: UUID) {
+        // Verify list exists
+        todoListRepository.findById(listId)
+            .orElseThrow { TodoListNotFoundException(listId) }
+        
+        val task = taskRepository.findById(taskId)
+            .orElseThrow { TaskNotFoundException(taskId) }
+        
+        // Verify task belongs to the list
+        if (task.list.id != listId) {
+            throw TaskNotFoundException(taskId)
+        }
+        
+        // Delete the task
+        taskRepository.delete(task)
+    }
 }

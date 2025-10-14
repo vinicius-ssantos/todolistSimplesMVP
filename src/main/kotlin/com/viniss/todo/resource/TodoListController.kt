@@ -10,6 +10,8 @@ import com.viniss.todo.api.mapper.RequestMapper.toCommand
 import com.viniss.todo.api.mapper.ResponseMapper.toResponse
 import com.viniss.todo.service.port.CreateTaskUseCase
 import com.viniss.todo.service.port.CreateTodoListUseCase
+import com.viniss.todo.service.port.DeleteTaskUseCase
+import com.viniss.todo.service.port.DeleteTodoListUseCase
 import com.viniss.todo.service.port.GetTaskUseCase
 import com.viniss.todo.service.port.ListQueryUseCase
 import com.viniss.todo.service.port.UpdateTodoListUseCase
@@ -17,6 +19,7 @@ import com.viniss.todo.service.port.UpdateTaskUseCase
 import java.util.UUID
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -34,7 +37,9 @@ class TodoListController(
     private val createTaskUseCase: CreateTaskUseCase,
     private val updateTodoListUseCase: UpdateTodoListUseCase,
     private val updateTaskUseCase: UpdateTaskUseCase,
-    private val getTaskUseCase: GetTaskUseCase
+    private val getTaskUseCase: GetTaskUseCase,
+    private val deleteTodoListUseCase: DeleteTodoListUseCase,
+    private val deleteTaskUseCase: DeleteTaskUseCase
 ) {
     @GetMapping
     fun getAll(): List<TodoListResponse> =
@@ -81,5 +86,22 @@ class TodoListController(
         @PathVariable taskId: UUID
     ): TaskResponse =
         getTaskUseCase.findById(listId, taskId).toResponse()
+
+    @DeleteMapping("/{listId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun deleteList(@PathVariable listId: UUID): ResponseEntity<Void> {
+        deleteTodoListUseCase.delete(listId)
+        return ResponseEntity.noContent().build()
+    }
+
+    @DeleteMapping("/{listId}/tasks/{taskId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun deleteTask(
+        @PathVariable listId: UUID,
+        @PathVariable taskId: UUID
+    ): ResponseEntity<Void> {
+        deleteTaskUseCase.delete(listId, taskId)
+        return ResponseEntity.noContent().build()
+    }
 
 }

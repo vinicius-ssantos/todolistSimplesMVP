@@ -10,4 +10,6 @@ interface TodoListWriteRepository {
     fun addTask(listId: UUID, task: TaskCreationData): TaskView
     fun updateList(listId: UUID, name: String): TodoListView
     fun updateTask(listId: UUID, taskId: UUID, updates: Map<String, Any?>): TaskView
+    fun deleteList(listId: UUID)
+    fun deleteTask(listId: UUID, taskId: UUID)
 }
