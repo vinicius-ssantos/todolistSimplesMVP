@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.viniss.todo.api.dto.TaskResponse
 import com.viniss.todo.api.dto.TodoListResponse
+import com.viniss.todo.config.TestMockMvcConfig
 import com.viniss.todo.domain.TaskEntity
 import com.viniss.todo.domain.TodoListEntity
 import com.viniss.todo.repo.TaskRepository
@@ -14,12 +15,16 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.*
 import java.util.*
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithMockUser
+@Import(TestMockMvcConfig::class)
 class TodoListControllerIT(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val objectMapper: ObjectMapper,
