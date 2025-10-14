@@ -69,11 +69,10 @@ class TodoListCommandService(
 
     @Transactional
     override fun update(listId: UUID, taskId: UUID, command: UpdateTaskCommand): TaskView {
-        // Verify list exists
         todoListReadRepository.findByIdWithTasks(listId)
             ?: throw TodoListNotFoundException(listId)
 
-        // Build updates map with only non-null values
+
         val updates = mutableMapOf<String, Any?>()
         
         command.title?.let { 

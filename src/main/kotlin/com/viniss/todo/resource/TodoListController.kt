@@ -10,6 +10,7 @@ import com.viniss.todo.api.mapper.RequestMapper.toCommand
 import com.viniss.todo.api.mapper.ResponseMapper.toResponse
 import com.viniss.todo.service.port.CreateTaskUseCase
 import com.viniss.todo.service.port.CreateTodoListUseCase
+import com.viniss.todo.service.port.GetTaskUseCase
 import com.viniss.todo.service.port.ListQueryUseCase
 import com.viniss.todo.service.port.UpdateTodoListUseCase
 import com.viniss.todo.service.port.UpdateTaskUseCase
@@ -32,11 +33,16 @@ class TodoListController(
     private val createTodoListUseCase: CreateTodoListUseCase,
     private val createTaskUseCase: CreateTaskUseCase,
     private val updateTodoListUseCase: UpdateTodoListUseCase,
-    private val updateTaskUseCase: UpdateTaskUseCase
+    private val updateTaskUseCase: UpdateTaskUseCase,
+    private val getTaskUseCase: GetTaskUseCase
 ) {
     @GetMapping
     fun getAll(): List<TodoListResponse> =
         listQueryUseCase.findAllWithTasks().map { it.toResponse() }
+
+    @GetMapping("/{listId}")
+    fun getById(@PathVariable listId: UUID): TodoListResponse =
+        listQueryUseCase.findById(listId).toResponse()
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -68,5 +74,12 @@ class TodoListController(
         updateTaskUseCase.update(listId, taskId, request.toCommand())
         return ResponseEntity.noContent().build()
     }
+
+    @GetMapping("/{listId}/tasks/{taskId}")
+    fun getTaskById(
+        @PathVariable listId: UUID,
+        @PathVariable taskId: UUID
+    ): TaskResponse =
+        getTaskUseCase.findById(listId, taskId).toResponse()
 
 }

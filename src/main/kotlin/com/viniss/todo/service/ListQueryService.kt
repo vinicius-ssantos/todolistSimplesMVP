@@ -1,8 +1,10 @@
 package com.viniss.todo.service
 
+import com.viniss.todo.service.exception.TodoListNotFoundException
 import com.viniss.todo.service.model.TodoListView
 import com.viniss.todo.service.port.ListQueryUseCase
 import com.viniss.todo.service.port.TodoListReadRepository
+import java.util.UUID
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -12,4 +14,9 @@ class ListQueryService(private val todoListReadRepository: TodoListReadRepositor
     @Transactional(readOnly = true)
     override fun findAllWithTasks(): List<TodoListView> =
         todoListReadRepository.findAllWithTasksOrdered()
+
+    @Transactional(readOnly = true)
+    override fun findById(listId: UUID): TodoListView =
+        todoListReadRepository.findByIdWithTasks(listId)
+            ?: throw TodoListNotFoundException(listId)
 }
