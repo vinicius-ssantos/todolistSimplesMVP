@@ -130,14 +130,10 @@ class JpaTodoListWriteRepository(
     @Transactional
     override fun deleteTask(listId: UUID, taskId: UUID) {
         val uid = currentUser.id()
-        val list = todoListRepository.findByIdWithTasksAndUser(listId, uid)
-            ?: throw TodoListNotFoundException(listId)
+        val listExists = todoListRepository.existsByIdAndUserId(listId, uid)
+        if (!listExists) throw TodoListNotFoundException(listId)
 
-        val task = taskRepository.findByIdAndUserId(taskId, uid)
-            ?: throw TaskNotFoundException(taskId)
-
-        if (task.list.id != list.id) throw TaskNotFoundException(taskId)
-
-        taskRepository.delete(task)
+        val deletedRows = taskRepository.deleteByIdAndUserIdAndListId(taskId, uid, listId)
+        if (deletedRows == 0) throw TaskNotFoundException(taskId)
     }
 }
