@@ -1,4 +1,4 @@
-package com.viniss.todo.resource
+package com.viniss.todo.it
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -10,8 +10,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import java.util.UUID
 
 @SpringBootTest
@@ -38,9 +38,9 @@ class P0AuthorizationIT(
     @DisplayName("P0: B não pode GET lista de A → 404")
     fun bCannotGetListOfA() {
         mockMvc.perform(
-            get("/v1/lists/$listId")
+            MockMvcRequestBuilders.get("/v1/lists/$listId")
                 .header("Authorization", "Bearer $tokenB")
-        ).andExpect(status().isNotFound)
+        ).andExpect(MockMvcResultMatchers.status().isNotFound)
     }
 
     @Test
@@ -48,20 +48,20 @@ class P0AuthorizationIT(
     fun bCannotPatchListOfA() {
         val updateListJson = """{ "name": "NOME HACK" }"""
         mockMvc.perform(
-            patch("/v1/lists/$listId")
+            MockMvcRequestBuilders.patch("/v1/lists/$listId")
                 .header("Authorization", "Bearer $tokenB")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(updateListJson)
-        ).andExpect(status().isNotFound)
+        ).andExpect(MockMvcResultMatchers.status().isNotFound)
     }
 
     @Test
     @DisplayName("P0: B não pode DELETE lista de A → 404")
     fun bCannotDeleteListOfA() {
         mockMvc.perform(
-            delete("/v1/lists/$listId")
+            MockMvcRequestBuilders.delete("/v1/lists/$listId")
                 .header("Authorization", "Bearer $tokenB")
-        ).andExpect(status().isNotFound)
+        ).andExpect(MockMvcResultMatchers.status().isNotFound)
     }
 
     @Test
@@ -69,24 +69,24 @@ class P0AuthorizationIT(
     fun bCannotAccessTaskOfA_getPatchDelete() {
         // GET task de A
         mockMvc.perform(
-            get("/v1/lists/$listId/tasks/$taskId")
+            MockMvcRequestBuilders.get("/v1/lists/$listId/tasks/$taskId")
                 .header("Authorization", "Bearer $tokenB")
-        ).andExpect(status().isNotFound)
+        ).andExpect(MockMvcResultMatchers.status().isNotFound)
 
         // PATCH task de A
         val patchTaskJson = """{ "title": "TÍTULO HACK" }"""
         mockMvc.perform(
-            patch("/v1/lists/$listId/tasks/$taskId")
+            MockMvcRequestBuilders.patch("/v1/lists/$listId/tasks/$taskId")
                 .header("Authorization", "Bearer $tokenB")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(patchTaskJson)
-        ).andExpect(status().isNotFound)
+        ).andExpect(MockMvcResultMatchers.status().isNotFound)
 
         // DELETE task de A
         mockMvc.perform(
-            delete("/v1/lists/$listId/tasks/$taskId")
+            MockMvcRequestBuilders.delete("/v1/lists/$listId/tasks/$taskId")
                 .header("Authorization", "Bearer $tokenB")
-        ).andExpect(status().isNotFound)
+        ).andExpect(MockMvcResultMatchers.status().isNotFound)
     }
 
     @Test
@@ -94,11 +94,11 @@ class P0AuthorizationIT(
     fun bCannotCreateTaskInsideListOfA() {
         val createTaskJson = """{ "title": "Task de B na lista de A" }"""
         mockMvc.perform(
-            post("/v1/lists/$listId/tasks")
+            MockMvcRequestBuilders.post("/v1/lists/$listId/tasks")
                 .header("Authorization", "Bearer $tokenB")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(createTaskJson)
-        ).andExpect(status().isNotFound)
+        ).andExpect(MockMvcResultMatchers.status().isNotFound)
     }
 
     // ----------------- helpers -----------------
@@ -106,10 +106,10 @@ class P0AuthorizationIT(
     private fun register(email: String, password: String): String {
         val body = """{"email":"$email","password":"$password"}"""
         val mvcRes = mockMvc.perform(
-            post("/api/auth/register")
+            MockMvcRequestBuilders.post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
-        ).andExpect(status().isOk)
+        ).andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
 
         val json = mapper.readTree(mvcRes.response.contentAsString)
@@ -118,11 +118,11 @@ class P0AuthorizationIT(
 
     private fun createList(token: String, name: String): UUID {
         val mvcRes = mockMvc.perform(
-            post("/v1/lists")
+            MockMvcRequestBuilders.post("/v1/lists")
                 .header("Authorization", "Bearer $token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"name":"$name"}""")
-        ).andExpect(status().is2xxSuccessful)
+        ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
             .andReturn()
 
         val json = mapper.readTree(mvcRes.response.contentAsString)
@@ -132,11 +132,11 @@ class P0AuthorizationIT(
     private fun createTask(token: String, listId: UUID, title: String): UUID {
         val body = """{"title":"$title"}"""
         val mvcRes = mockMvc.perform(
-            post("/v1/lists/$listId/tasks")
+            MockMvcRequestBuilders.post("/v1/lists/$listId/tasks")
                 .header("Authorization", "Bearer $token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
-        ).andExpect(status().is2xxSuccessful)
+        ).andExpect(MockMvcResultMatchers.status().is2xxSuccessful)
             .andReturn()
 
         val json: JsonNode = mapper.readTree(mvcRes.response.contentAsString)

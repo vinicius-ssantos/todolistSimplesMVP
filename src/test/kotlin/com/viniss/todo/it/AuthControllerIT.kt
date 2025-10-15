@@ -1,11 +1,11 @@
-package com.viniss.todo.resource
+package com.viniss.todo.it
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.viniss.todo.auth.AppUserRepository
 import com.viniss.todo.auth.AuthResponse
 import com.viniss.todo.repo.TaskRepository
 import com.viniss.todo.repo.TodoListRepository
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,7 +15,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
-import java.util.*
+import java.util.UUID
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -50,11 +50,11 @@ class AuthControllerIT @Autowired constructor(
             .readValue(registerResponse.response.contentAsString, AuthResponse::class.java)
             .token
 
-        assertThat(registerToken).isNotBlank()
+        Assertions.assertThat(registerToken).isNotBlank()
 
 
         val unauthorized = mockMvc.get("/v1/lists").andReturn()
-        assertThat(unauthorized.response.status).isIn(401, 403)
+        Assertions.assertThat(unauthorized.response.status).isIn(401, 403)
 
         mockMvc.get("/v1/lists") {
             header("Authorization", "Bearer $registerToken")
@@ -73,7 +73,7 @@ class AuthControllerIT @Autowired constructor(
             .readValue(loginResponse.response.contentAsString, AuthResponse::class.java)
             .token
 
-        assertThat(loginToken).isNotBlank()
+        Assertions.assertThat(loginToken).isNotBlank()
 
         mockMvc.get("/v1/lists") {
             header("Authorization", "Bearer $loginToken")
