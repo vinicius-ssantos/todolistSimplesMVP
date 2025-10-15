@@ -34,4 +34,8 @@ class TaskEntity(
 
     @Column(nullable = false)
     var position: Int = 0
-) : BaseAudit()
+) : BaseAudit(){
+
+    @Column(name = "user_id", columnDefinition = "UUID")
+    var userId: UUID? = null
+}

@@ -18,22 +18,23 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
-@Bean fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
+    @Bean
+    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
 
-@Bean
-fun filterChain(http: HttpSecurity): SecurityFilterChain = http
-.csrf { it.disable() }
-.sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-.authorizeHttpRequests {
-it.requestMatchers("/api/auth/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
-.anyRequest().authenticated()
-}
-.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
-.build()
+    @Bean
+    fun filterChain(http: HttpSecurity): SecurityFilterChain = http
+        .csrf { it.disable() }
+        .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+        .authorizeHttpRequests {
+            it.requestMatchers("/api/auth/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                .anyRequest().authenticated()
+        }
+        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
+        .build()
 
 
-@Bean
-fun authenticationManager(config: AuthenticationConfiguration): AuthenticationManager =
-config.authenticationManager
+    @Bean
+    fun authenticationManager(config: AuthenticationConfiguration): AuthenticationManager =
+        config.authenticationManager
 }

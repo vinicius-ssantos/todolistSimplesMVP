@@ -6,6 +6,6 @@ import java.util.*
 
 
 interface AppUserRepository : JpaRepository<AppUserEntity, UUID> {
-fun findByEmail(email: String): AppUserEntity?
-fun existsByEmail(email: String): Boolean
+    fun findByEmail(email: String): AppUserEntity?
+    fun existsByEmail(email: String): Boolean
 }

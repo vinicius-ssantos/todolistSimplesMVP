@@ -1,4 +1,3 @@
-// src/main/kotlin/com/viniss/todo/domain/TodoListEntity.kt
 package com.viniss.todo.domain
 
 import jakarta.persistence.*
@@ -13,6 +12,9 @@ class TodoListEntity(
     @Column(nullable = false, length = 100)
     var name: String
 ) : BaseAudit() {
+
+    @Column(name = "user_id", columnDefinition = "UUID")
+    var userId: UUID? = null   // ficará NOT NULL depois (V5)
 
     @OneToMany(
         mappedBy = "list",

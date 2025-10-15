@@ -5,4 +5,5 @@ import java.util.*
 
 interface TaskRepository : JpaRepository<TaskEntity, UUID> {
     fun findByListIdOrderByPositionAsc(listId: UUID): List<TaskEntity>
+    fun findByIdAndUserId(id: UUID, userId: UUID): TaskEntity?
 }
