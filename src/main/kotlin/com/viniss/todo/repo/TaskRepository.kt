@@ -12,7 +12,10 @@ interface TaskRepository : JpaRepository<TaskEntity, UUID> {
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(
-        "delete from TaskEntity t where t.id = :taskId and t.userId = :userId and t.list.id = :listId"
+        """
+            delete from TaskEntity t
+            where t.id = :taskId and t.list.id = :listId and t.userId = :userId
+        """
     )
-    fun deleteByIdAndUserIdAndListId(taskId: UUID, userId: UUID, listId: UUID): Int
+    fun deleteOwned(taskId: UUID, listId: UUID, userId: UUID): Int
 }

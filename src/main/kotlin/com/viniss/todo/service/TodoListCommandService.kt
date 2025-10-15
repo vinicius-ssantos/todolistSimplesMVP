@@ -102,10 +102,6 @@ class TodoListCommandService(
 
     @Transactional
     override fun delete(listId: UUID, taskId: UUID) {
-        // Verify list exists first
-        todoListReadRepository.findByIdWithTasks(listId)
-            ?: throw TodoListNotFoundException(listId)
-        
         todoListWriteRepository.deleteTask(listId, taskId)
     }
 }
