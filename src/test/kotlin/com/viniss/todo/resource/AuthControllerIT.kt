@@ -1,12 +1,10 @@
 package com.viniss.todo.resource
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.viniss.todo.auth.AuthResponse
 import com.viniss.todo.auth.AppUserRepository
-import com.viniss.todo.domain.TodoListEntity
+import com.viniss.todo.auth.AuthResponse
 import com.viniss.todo.repo.TaskRepository
 import com.viniss.todo.repo.TodoListRepository
-import java.util.UUID
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -17,6 +15,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
+import java.util.*
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -53,7 +52,6 @@ class AuthControllerIT @Autowired constructor(
 
         assertThat(registerToken).isNotBlank()
 
-        todoListRepository.save(TodoListEntity(name = "Work"))
 
         val unauthorized = mockMvc.get("/v1/lists").andReturn()
         assertThat(unauthorized.response.status).isIn(401, 403)

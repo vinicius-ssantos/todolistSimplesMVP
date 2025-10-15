@@ -9,6 +9,8 @@ import com.viniss.todo.domain.TaskEntity
 import com.viniss.todo.domain.TodoListEntity
 import com.viniss.todo.repo.TaskRepository
 import com.viniss.todo.repo.TodoListRepository
+import com.viniss.todo.auth.AppUserRepository
+import com.viniss.todo.auth.AppUserEntity
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -23,31 +25,46 @@ import java.util.*
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@WithMockUser
+@WithMockUser(username = "00000000-0000-0000-0000-000000000001")
 @Import(TestMockMvcConfig::class)
 class TodoListControllerIT(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val objectMapper: ObjectMapper,
     @Autowired private val todoListRepository: TodoListRepository,
-    @Autowired private val taskRepository: TaskRepository
+    @Autowired private val taskRepository: TaskRepository,
+    @Autowired private val appUserRepository: AppUserRepository
 ) {
 
     private lateinit var primaryList: TodoListEntity
     private lateinit var firstTask: TaskEntity
+    lateinit var seedUserId: UUID
 
     @BeforeEach
     fun setUp() {
         taskRepository.deleteAll()
         todoListRepository.deleteAll()
 
-        primaryList = todoListRepository.save(TodoListEntity(name = "Projetos"))
-        todoListRepository.save(TodoListEntity(name = "Mercado"))
+        seedUserId = UUID.fromString("00000000-0000-0000-0000-000000000001")
+        val seedUser = appUserRepository.save(
+            AppUserEntity(
+                id = seedUserId,                     // <- fixa o id
+                email = "it@example.com",
+                passwordHash = "noop"
+            )
+        )
+
+        primaryList = todoListRepository.save(
+            TodoListEntity(name = "Projetos").apply { userId = seedUserId }
+        )
+        todoListRepository.save(
+            TodoListEntity(name = "Mercado").apply { userId = seedUserId }
+        )
 
         firstTask = TaskEntity(
             list = primaryList,
             title = "Criar estrutura do projeto",
             position = 0
-        )
+        ).apply { userId = seedUserId }             // <- idem aqui
         firstTask = taskRepository.save(firstTask)
     }
 
@@ -220,12 +237,12 @@ class TodoListControllerIT(
 
     @Test
     fun `should return not found when task does not belong to list`() {
-        val otherList = todoListRepository.save(TodoListEntity(name = "Outra Lista"))
+        val otherList = todoListRepository.save(TodoListEntity(name = "Outra Lista").apply { userId = seedUserId })
         val otherTask = taskRepository.save(TaskEntity(
             list = otherList,
             title = "Task de outra lista",
             position = 0
-        ))
+        ).apply { userId = seedUserId })
 
         mockMvc.get("/v1/lists/${primaryList.id}/tasks/${otherTask.id}")
             .andExpect {
@@ -368,7 +385,7 @@ class TodoListControllerIT(
             list = primaryList,
             title = "Segunda task",
             position = 1
-        ))
+        ).apply { userId = seedUserId })
 
         mockMvc.delete("/v1/lists/${primaryList.id}")
             .andExpect {
@@ -404,12 +421,12 @@ class TodoListControllerIT(
 
     @Test
     fun `should return not found when deleting task from wrong list`() {
-        val otherList = todoListRepository.save(TodoListEntity(name = "Outra Lista"))
+        val otherList = todoListRepository.save(TodoListEntity(name = "Outra Lista").apply { userId = seedUserId })
         val otherTask = taskRepository.save(TaskEntity(
             list = otherList,
             title = "Task de outra lista",
             position = 0
-        ))
+        ).apply { userId = seedUserId })
 
         mockMvc.delete("/v1/lists/${primaryList.id}/tasks/${otherTask.id}")
             .andExpect {
@@ -427,12 +444,12 @@ class TodoListControllerIT(
             list = primaryList,
             title = "Task 2",
             position = 1
-        ))
+        ).apply { userId = seedUserId })
         val task3 = taskRepository.save(TaskEntity(
             list = primaryList,
             title = "Task 3",
             position = 2
-        ))
+        ).apply { userId = seedUserId })
 
         // Move first task to position 2 (should shift others)
         val payload = """{"position":2}"""
@@ -461,12 +478,12 @@ class TodoListControllerIT(
             list = primaryList,
             title = "Task 1",
             position = 0
-        ))
+        ).apply { userId = seedUserId })
         taskRepository.save(TaskEntity(
             list = primaryList,
             title = "Task 2",
             position = 1
-        ))
+        ).apply { userId = seedUserId })
 
         // Create task without position (should auto-assign)
         val payload = """{"title":"Task Auto Position"}"""
@@ -486,7 +503,7 @@ class TodoListControllerIT(
 
     @Test
     fun `should handle empty lists gracefully`() {
-        val emptyList = todoListRepository.save(TodoListEntity(name = "Lista Vazia"))
+        val emptyList = todoListRepository.save(TodoListEntity(name = "Lista Vazia").apply { userId = seedUserId })
 
         val result = mockMvc.get("/v1/lists/${emptyList.id}")
             .andExpect {
