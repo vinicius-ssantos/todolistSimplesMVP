@@ -1,11 +1,18 @@
-// src/main/kotlin/com/viniss/todo/domain/TodoListEntity.kt
 package com.viniss.todo.domain
 
-import jakarta.persistence.*
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.Id
+import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
 import jakarta.validation.constraints.NotBlank
-import java.util.*
+import java.util.UUID
+import org.hibernate.Hibernate
 
-@Entity @Table(name = "todo_list")
+@Entity
+@Table(name = "todo_list")
 class TodoListEntity(
     @Id val id: UUID = UUID.randomUUID(),
 
@@ -14,6 +21,9 @@ class TodoListEntity(
     var name: String
 ) : BaseAudit() {
 
+    @Column(name = "user_id", columnDefinition = "UUID")
+    var userId: UUID? = null   // ficara NOT NULL depois (V5)
+
     @OneToMany(
         mappedBy = "list",
         cascade = [CascadeType.ALL],
@@ -21,4 +31,13 @@ class TodoListEntity(
         fetch = FetchType.LAZY
     )
     var tasks: MutableList<TaskEntity> = mutableListOf()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || Hibernate.getClass(this) != Hibernate.getClass(other)) return false
+        other as TodoListEntity
+        return id == other.id
+    }
+
+    override fun hashCode(): Int = id.hashCode()
 }

@@ -2,8 +2,9 @@ package com.viniss.todo.repo
 
 import com.viniss.todo.domain.TodoListEntity
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
-import java.util.*
+import java.util.UUID
 
 interface TodoListRepository : JpaRepository<TodoListEntity, UUID> {
     @Query(
@@ -23,4 +24,23 @@ interface TodoListRepository : JpaRepository<TodoListEntity, UUID> {
         """
     )
     fun findByIdWithTasks(id: UUID): TodoListEntity?
+
+    @Query("""
+        select distinct list from TodoListEntity list
+        left join fetch list.tasks tasks
+        where list.userId = :userId
+        order by list.createdAt asc, tasks.position asc
+    """)
+    fun findAllWithTasksOrderedByUser(userId: UUID): List<TodoListEntity>
+
+    @Query("""
+        select list from TodoListEntity list
+        left join fetch list.tasks
+        where list.id = :id and list.userId = :userId
+    """)
+    fun findByIdWithTasksAndUser(id: UUID, userId: UUID): TodoListEntity?
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("delete from TodoListEntity list where list.id = :id and list.userId = :userId")
+    fun deleteOwned(id: UUID, userId: UUID): Int
 }

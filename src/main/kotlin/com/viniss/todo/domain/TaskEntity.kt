@@ -4,7 +4,8 @@ package com.viniss.todo.domain
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotBlank
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
+import org.hibernate.Hibernate
 
 @Entity
 @Table(
@@ -34,4 +35,17 @@ class TaskEntity(
 
     @Column(nullable = false)
     var position: Int = 0
-) : BaseAudit()
+) : BaseAudit() {
+
+    @Column(name = "user_id", columnDefinition = "UUID")
+    var userId: UUID? = null
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || Hibernate.getClass(this) != Hibernate.getClass(other)) return false
+        other as TaskEntity
+        return id == other.id
+    }
+
+    override fun hashCode(): Int = id.hashCode()
+}

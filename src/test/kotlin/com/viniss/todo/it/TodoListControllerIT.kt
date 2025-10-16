@@ -1,48 +1,78 @@
-package com.viniss.todo.resource
+package com.viniss.todo.it
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.viniss.todo.api.dto.TaskResponse
 import com.viniss.todo.api.dto.TodoListResponse
+import com.viniss.todo.auth.AppUserEntity
+import com.viniss.todo.auth.AppUserRepository
+import com.viniss.todo.config.TestMockMvcConfig
+import com.viniss.todo.domain.Priority
+import com.viniss.todo.domain.Status
 import com.viniss.todo.domain.TaskEntity
 import com.viniss.todo.domain.TodoListEntity
 import com.viniss.todo.repo.TaskRepository
 import com.viniss.todo.repo.TodoListRepository
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
-import org.springframework.test.web.servlet.*
-import java.util.*
+import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.delete
+import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.patch
+import org.springframework.test.web.servlet.post
+import java.time.LocalDate
+import java.util.UUID
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithMockUser(username = "00000000-0000-0000-0000-000000000001")
+@Import(TestMockMvcConfig::class)
 class TodoListControllerIT(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val objectMapper: ObjectMapper,
     @Autowired private val todoListRepository: TodoListRepository,
-    @Autowired private val taskRepository: TaskRepository
+    @Autowired private val taskRepository: TaskRepository,
+    @Autowired private val appUserRepository: AppUserRepository
 ) {
 
     private lateinit var primaryList: TodoListEntity
     private lateinit var firstTask: TaskEntity
+    lateinit var seedUserId: UUID
 
     @BeforeEach
     fun setUp() {
         taskRepository.deleteAll()
         todoListRepository.deleteAll()
 
-        primaryList = todoListRepository.save(TodoListEntity(name = "Projetos"))
-        todoListRepository.save(TodoListEntity(name = "Mercado"))
+        seedUserId = UUID.fromString("00000000-0000-0000-0000-000000000001")
+        val seedUser = appUserRepository.save(
+            AppUserEntity(
+                id = seedUserId,                     // <- fixa o id
+                email = "it@example.com",
+                passwordHash = "noop"
+            )
+        )
+
+        primaryList = todoListRepository.save(
+            TodoListEntity(name = "Projetos").apply { userId = seedUserId }
+        )
+        todoListRepository.save(
+            TodoListEntity(name = "Mercado").apply { userId = seedUserId }
+        )
 
         firstTask = TaskEntity(
             list = primaryList,
             title = "Criar estrutura do projeto",
             position = 0
-        )
+        ).apply { userId = seedUserId }             // <- idem aqui
         firstTask = taskRepository.save(firstTask)
     }
 
@@ -59,10 +89,10 @@ class TodoListControllerIT(
             object : TypeReference<List<TodoListResponse>>() {}
         )
 
-        assertThat(response).hasSize(2)
+        Assertions.assertThat(response).hasSize(2)
         val primary = response.first { it.name == "Projetos" }
-        assertThat(primary.tasks).hasSize(1)
-        assertThat(primary.tasks.first().title).isEqualTo("Criar estrutura do projeto")
+        Assertions.assertThat(primary.tasks).hasSize(1)
+        Assertions.assertThat(primary.tasks.first().title).isEqualTo("Criar estrutura do projeto")
     }
 
     @Test
@@ -78,11 +108,11 @@ class TodoListControllerIT(
 
         val response = objectMapper.readValue(result.response.contentAsString, TodoListResponse::class.java)
 
-        assertThat(response.id).isNotNull()
-        assertThat(response.name).isEqualTo("Estudos")
-        assertThat(response.tasks).isEmpty()
+        Assertions.assertThat(response.id).isNotNull()
+        Assertions.assertThat(response.name).isEqualTo("Estudos")
+        Assertions.assertThat(response.tasks).isEmpty()
 
-        assertThat(todoListRepository.count()).isEqualTo(3)
+        Assertions.assertThat(todoListRepository.count()).isEqualTo(3)
     }
 
     @Test
@@ -98,11 +128,11 @@ class TodoListControllerIT(
 
         val response = objectMapper.readValue(result.response.contentAsString, TaskResponse::class.java)
 
-        assertThat(response.title).isEqualTo("Criar endpoint POST")
-        assertThat(response.position).isEqualTo(1)
+        Assertions.assertThat(response.title).isEqualTo("Criar endpoint POST")
+        Assertions.assertThat(response.position).isEqualTo(1)
 
         val tasks = taskRepository.findByListIdOrderByPositionAsc(primaryList.id)
-        assertThat(tasks).hasSize(2)
+        Assertions.assertThat(tasks).hasSize(2)
     }
 
     @Test
@@ -170,10 +200,10 @@ class TodoListControllerIT(
 
         val response = objectMapper.readValue(result.response.contentAsString, TodoListResponse::class.java)
 
-        assertThat(response.id).isEqualTo(primaryList.id)
-        assertThat(response.name).isEqualTo("Projetos")
-        assertThat(response.tasks).hasSize(1)
-        assertThat(response.tasks.first().title).isEqualTo("Criar estrutura do projeto")
+        Assertions.assertThat(response.id).isEqualTo(primaryList.id)
+        Assertions.assertThat(response.name).isEqualTo("Projetos")
+        Assertions.assertThat(response.tasks).hasSize(1)
+        Assertions.assertThat(response.tasks.first().title).isEqualTo("Criar estrutura do projeto")
     }
 
     @Test
@@ -186,9 +216,9 @@ class TodoListControllerIT(
 
         val response = objectMapper.readValue(result.response.contentAsString, TaskResponse::class.java)
 
-        assertThat(response.id).isEqualTo(firstTask.id)
-        assertThat(response.title).isEqualTo("Criar estrutura do projeto")
-        assertThat(response.position).isEqualTo(0)
+        Assertions.assertThat(response.id).isEqualTo(firstTask.id)
+        Assertions.assertThat(response.title).isEqualTo("Criar estrutura do projeto")
+        Assertions.assertThat(response.position).isEqualTo(0)
     }
 
     @Test
@@ -215,12 +245,13 @@ class TodoListControllerIT(
 
     @Test
     fun `should return not found when task does not belong to list`() {
-        val otherList = todoListRepository.save(TodoListEntity(name = "Outra Lista"))
-        val otherTask = taskRepository.save(TaskEntity(
-            list = otherList,
-            title = "Task de outra lista",
-            position = 0
-        ))
+        val otherList = todoListRepository.save(TodoListEntity(name = "Outra Lista").apply { userId = seedUserId })
+        val otherTask = taskRepository.save(
+            TaskEntity(
+                list = otherList,
+                title = "Task de outra lista",
+                position = 0
+            ).apply { userId = seedUserId })
 
         mockMvc.get("/v1/lists/${primaryList.id}/tasks/${otherTask.id}")
             .andExpect {
@@ -243,7 +274,7 @@ class TodoListControllerIT(
         }
 
         val updatedList = todoListRepository.findById(primaryList.id).get()
-        assertThat(updatedList.name).isEqualTo("Projetos Atualizados")
+        Assertions.assertThat(updatedList.name).isEqualTo("Projetos Atualizados")
     }
 
     @Test
@@ -265,12 +296,12 @@ class TodoListControllerIT(
         }
 
         val updatedTask = taskRepository.findById(firstTask.id).get()
-        assertThat(updatedTask.title).isEqualTo("Task Atualizada")
-        assertThat(updatedTask.notes).isEqualTo("Notas atualizadas")
-        assertThat(updatedTask.priority).isEqualTo(com.viniss.todo.domain.Priority.HIGH)
-        assertThat(updatedTask.status).isEqualTo(com.viniss.todo.domain.Status.IN_PROGRESS)
-        assertThat(updatedTask.dueDate).isEqualTo(java.time.LocalDate.of(2024, 12, 31))
-        assertThat(updatedTask.position).isEqualTo(5)
+        Assertions.assertThat(updatedTask.title).isEqualTo("Task Atualizada")
+        Assertions.assertThat(updatedTask.notes).isEqualTo("Notas atualizadas")
+        Assertions.assertThat(updatedTask.priority).isEqualTo(Priority.HIGH)
+        Assertions.assertThat(updatedTask.status).isEqualTo(Status.IN_PROGRESS)
+        Assertions.assertThat(updatedTask.dueDate).isEqualTo(LocalDate.of(2024, 12, 31))
+        Assertions.assertThat(updatedTask.position).isEqualTo(5)
     }
 
     @Test
@@ -288,10 +319,10 @@ class TodoListControllerIT(
         }
 
         val updatedTask = taskRepository.findById(firstTask.id).get()
-        assertThat(updatedTask.title).isEqualTo("Apenas título atualizado")
-        assertThat(updatedTask.status).isEqualTo(com.viniss.todo.domain.Status.DONE)
+        Assertions.assertThat(updatedTask.title).isEqualTo("Apenas título atualizado")
+        Assertions.assertThat(updatedTask.status).isEqualTo(Status.DONE)
         // Other fields should remain unchanged
-        assertThat(updatedTask.position).isEqualTo(0)
+        Assertions.assertThat(updatedTask.position).isEqualTo(0)
     }
 
     @Test
@@ -329,7 +360,7 @@ class TodoListControllerIT(
             content = payload
         }.andExpect {
             status { isBadRequest() }
-            jsonPath("$.message") { value(org.hamcrest.Matchers.containsString("Invalid JSON format or invalid enum value")) }
+            jsonPath("$.message") { value(Matchers.containsString("Invalid JSON format or invalid enum value")) }
         }
     }
 
@@ -359,20 +390,21 @@ class TodoListControllerIT(
     @Test
     fun `should delete todo list and all its tasks`() {
         // Create another task in the same list
-        val secondTask = taskRepository.save(TaskEntity(
-            list = primaryList,
-            title = "Segunda task",
-            position = 1
-        ))
+        val secondTask = taskRepository.save(
+            TaskEntity(
+                list = primaryList,
+                title = "Segunda task",
+                position = 1
+            ).apply { userId = seedUserId })
 
         mockMvc.delete("/v1/lists/${primaryList.id}")
             .andExpect {
                 status { isNoContent() }
             }
 
-        assertThat(todoListRepository.findById(primaryList.id)).isEmpty
-        assertThat(taskRepository.findById(firstTask.id)).isEmpty
-        assertThat(taskRepository.findById(secondTask.id)).isEmpty
+        Assertions.assertThat(todoListRepository.findById(primaryList.id)).isEmpty
+        Assertions.assertThat(taskRepository.findById(firstTask.id)).isEmpty
+        Assertions.assertThat(taskRepository.findById(secondTask.id)).isEmpty
     }
 
     @Test
@@ -399,12 +431,13 @@ class TodoListControllerIT(
 
     @Test
     fun `should return not found when deleting task from wrong list`() {
-        val otherList = todoListRepository.save(TodoListEntity(name = "Outra Lista"))
-        val otherTask = taskRepository.save(TaskEntity(
-            list = otherList,
-            title = "Task de outra lista",
-            position = 0
-        ))
+        val otherList = todoListRepository.save(TodoListEntity(name = "Outra Lista").apply { userId = seedUserId })
+        val otherTask = taskRepository.save(
+            TaskEntity(
+                list = otherList,
+                title = "Task de outra lista",
+                position = 0
+            ).apply { userId = seedUserId })
 
         mockMvc.delete("/v1/lists/${primaryList.id}/tasks/${otherTask.id}")
             .andExpect {
@@ -418,16 +451,18 @@ class TodoListControllerIT(
     @Test
     fun `should reorganize positions when updating task position`() {
         // Create multiple tasks
-        val task2 = taskRepository.save(TaskEntity(
-            list = primaryList,
-            title = "Task 2",
-            position = 1
-        ))
-        val task3 = taskRepository.save(TaskEntity(
-            list = primaryList,
-            title = "Task 3",
-            position = 2
-        ))
+        val task2 = taskRepository.save(
+            TaskEntity(
+                list = primaryList,
+                title = "Task 2",
+                position = 1
+            ).apply { userId = seedUserId })
+        val task3 = taskRepository.save(
+            TaskEntity(
+                list = primaryList,
+                title = "Task 3",
+                position = 2
+            ).apply { userId = seedUserId })
 
         // Move first task to position 2 (should shift others)
         val payload = """{"position":2}"""
@@ -444,24 +479,26 @@ class TodoListControllerIT(
         val updatedTask2 = taskRepository.findById(task2.id).get()
         val updatedTask3 = taskRepository.findById(task3.id).get()
 
-        assertThat(updatedFirstTask.position).isEqualTo(2)
-        assertThat(updatedTask2.position).isEqualTo(0) // shifted down
-        assertThat(updatedTask3.position).isEqualTo(1) // shifted down
+        Assertions.assertThat(updatedFirstTask.position).isEqualTo(2)
+        Assertions.assertThat(updatedTask2.position).isEqualTo(0) // shifted down
+        Assertions.assertThat(updatedTask3.position).isEqualTo(1) // shifted down
     }
 
     @Test
     fun `should handle task creation with automatic position assignment`() {
         // Create tasks with specific positions
-        taskRepository.save(TaskEntity(
-            list = primaryList,
-            title = "Task 1",
-            position = 0
-        ))
-        taskRepository.save(TaskEntity(
-            list = primaryList,
-            title = "Task 2",
-            position = 1
-        ))
+        taskRepository.save(
+            TaskEntity(
+                list = primaryList,
+                title = "Task 1",
+                position = 0
+            ).apply { userId = seedUserId })
+        taskRepository.save(
+            TaskEntity(
+                list = primaryList,
+                title = "Task 2",
+                position = 1
+            ).apply { userId = seedUserId })
 
         // Create task without position (should auto-assign)
         val payload = """{"title":"Task Auto Position"}"""
@@ -474,14 +511,14 @@ class TodoListControllerIT(
         }.andReturn()
 
         val response = objectMapper.readValue(result.response.contentAsString, TaskResponse::class.java)
-        assertThat(response.position).isEqualTo(2) // Should be next available position
+        Assertions.assertThat(response.position).isEqualTo(2) // Should be next available position
     }
 
     // ========== EDGE CASES TESTS ==========
 
     @Test
     fun `should handle empty lists gracefully`() {
-        val emptyList = todoListRepository.save(TodoListEntity(name = "Lista Vazia"))
+        val emptyList = todoListRepository.save(TodoListEntity(name = "Lista Vazia").apply { userId = seedUserId })
 
         val result = mockMvc.get("/v1/lists/${emptyList.id}")
             .andExpect {
@@ -490,7 +527,7 @@ class TodoListControllerIT(
             .andReturn()
 
         val response = objectMapper.readValue(result.response.contentAsString, TodoListResponse::class.java)
-        assertThat(response.tasks).isEmpty()
+        Assertions.assertThat(response.tasks).isEmpty()
     }
 
     @Test
@@ -512,8 +549,8 @@ class TodoListControllerIT(
         }
 
         val updatedTask = taskRepository.findById(firstTask.id).get()
-        assertThat(updatedTask.title).isEqualTo("Task com campos null")
+        Assertions.assertThat(updatedTask.title).isEqualTo("Task com campos null")
         // Other fields should remain unchanged since they were null
-        assertThat(updatedTask.position).isEqualTo(0)
+        Assertions.assertThat(updatedTask.position).isEqualTo(0)
     }
 }

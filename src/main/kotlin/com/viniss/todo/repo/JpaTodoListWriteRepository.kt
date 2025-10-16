@@ -1,5 +1,6 @@
 package com.viniss.todo.repo
 
+import com.viniss.todo.auth.CurrentUser
 import com.viniss.todo.domain.TaskEntity
 import com.viniss.todo.domain.TodoListEntity
 import com.viniss.todo.repo.mapper.EntityMappers
@@ -17,18 +18,20 @@ import org.springframework.transaction.annotation.Transactional
 class JpaTodoListWriteRepository(
     private val todoListRepository: TodoListRepository,
     private val taskRepository: TaskRepository,
-    private val entityMappers: EntityMappers
+    private val entityMappers: EntityMappers,
+    private val currentUser: CurrentUser
 ) : TodoListWriteRepository {
 
     override fun createList(name: String): TodoListView {
-        val entity = TodoListEntity(name = name)
-        val saved = todoListRepository.save(entity)
-        return entityMappers.mapToView(saved)
+        val uid = currentUser.id()
+        val entity = TodoListEntity(name = name).apply { userId = uid }
+        return entityMappers.mapToView(todoListRepository.save(entity))
     }
 
     override fun addTask(listId: UUID, task: TaskCreationData): TaskView {
-        val list = todoListRepository.findById(listId)
-            .orElseThrow { TodoListNotFoundException(listId) }
+        val uid = currentUser.id()
+        val list = todoListRepository.findByIdWithTasksAndUser(listId, uid)
+            ?: throw TodoListNotFoundException(listId)
 
         val taskEntity = TaskEntity(
             list = list,
@@ -38,34 +41,34 @@ class JpaTodoListWriteRepository(
             status = task.status,
             dueDate = task.dueDate,
             position = task.position
-        )
+        ).apply {
+            this.list = list
+            this.userId = uid
+        }
 
-        val saved = taskRepository.save(taskEntity)
-        return entityMappers.mapToView(saved)
+        return entityMappers.mapToView(taskRepository.save(taskEntity))
     }
 
     @Transactional
     override fun updateList(listId: UUID, name: String): TodoListView {
-        val list = todoListRepository.findById(listId)
-            .orElseThrow { TodoListNotFoundException(listId) }
-        
+        val uid = currentUser.id()
+        val list = todoListRepository.findByIdWithTasksAndUser(listId, uid)
+            ?: throw TodoListNotFoundException(listId)
         list.name = name
-        val saved = todoListRepository.save(list)
-        return entityMappers.mapToView(saved)
+        return entityMappers.mapToView(todoListRepository.save(list))
     }
 
     @Transactional
     override fun updateTask(listId: UUID, taskId: UUID, updates: Map<String, Any?>): TaskView {
-        val list = todoListRepository.findById(listId)
-            .orElseThrow { TodoListNotFoundException(listId) }
-        
-        val task = taskRepository.findById(taskId)
-            .orElseThrow { TaskNotFoundException(taskId) }
-        
-        // Verify task belongs to the list
-        if (task.list.id != listId) {
-            throw TaskNotFoundException(taskId)
-        }
+        val uid = currentUser.id()
+        val list = todoListRepository.findByIdWithTasksAndUser(listId, uid)
+            ?: throw TodoListNotFoundException(listId)
+
+        val task = taskRepository.findByIdAndUserId(taskId, uid)
+            ?: throw TaskNotFoundException(taskId)
+
+        if (task.list.id != list.id) throw TaskNotFoundException(taskId)
+
         
         // Apply updates
         updates.forEach { (field, value) ->
@@ -84,9 +87,8 @@ class JpaTodoListWriteRepository(
                 }
             }
         }
-        
-        val saved = taskRepository.save(task)
-        return entityMappers.mapToView(saved)
+
+        return entityMappers.mapToView(taskRepository.save(task))
     }
     
     private fun reorganizeTaskPositions(list: TodoListEntity, movedTask: TaskEntity, newPosition: Int) {
@@ -119,32 +121,15 @@ class JpaTodoListWriteRepository(
 
     @Transactional
     override fun deleteList(listId: UUID) {
-        val list = todoListRepository.findById(listId)
-            .orElseThrow { TodoListNotFoundException(listId) }
-        
-        // Delete all tasks first (cascade should handle this, but being explicit)
-        val tasks = taskRepository.findByListIdOrderByPositionAsc(listId)
-        taskRepository.deleteAll(tasks)
-        
-        // Delete the list
-        todoListRepository.delete(list)
+        val uid = currentUser.id()
+        val deletedRows = todoListRepository.deleteOwned(listId, uid)
+        if (deletedRows == 0) throw TodoListNotFoundException(listId)
     }
 
     @Transactional
     override fun deleteTask(listId: UUID, taskId: UUID) {
-        // Verify list exists
-        todoListRepository.findById(listId)
-            .orElseThrow { TodoListNotFoundException(listId) }
-        
-        val task = taskRepository.findById(taskId)
-            .orElseThrow { TaskNotFoundException(taskId) }
-        
-        // Verify task belongs to the list
-        if (task.list.id != listId) {
-            throw TaskNotFoundException(taskId)
-        }
-        
-        // Delete the task
-        taskRepository.delete(task)
+        val uid = currentUser.id()
+        val deletedRows = taskRepository.deleteOwned(taskId, listId, uid)
+        if (deletedRows == 0) throw TaskNotFoundException(taskId)
     }
 }

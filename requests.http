@@ -85,3 +85,26 @@ Accept: application/json
 ### DELETE TodoList - substitua {{listId}} pelo UUID da lista
 DELETE http://localhost:8081/v1/lists/0b2f1a75-9c1d-4c6b-9e49-8a6b4d6b2e91
 Accept: application/json
+
+
+
+
+### Registrar usuário
+POST http://localhost:8081/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "dev@example3.com",
+  "password": "secret123"
+}
+
+
+### Fazer login e obter token
+POST http://localhost:8081/api/auth/login
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJkZXZAZXhhbXBsZTMuY29tIiwidWlkIjoiYzk1NzcyNjYtZjRlMS00NjlkLTg0MzItYWE0NjQ2YmQxNTIxIiwiaWF0IjoxNzYwNTAwNzAwLCJleHAiOjE3NjA1MDQzMDB9.s137Jbvt5efwW_MRolxe0IgMigRF6Y0YOnjdAo2D943Ba8U_g4tD6aFJ3mF6BEp7
+
+{
+  "email": "dev@example3.com",
+  "password": "secret123"
+}
