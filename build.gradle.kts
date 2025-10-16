@@ -72,7 +72,10 @@ jacoco {
 }
 
 tasks.withType<Test>().configureEach {
-            useJUnitPlatform()
+    useJUnitPlatform()
+    environment("DB_URL", System.getenv("DB_URL") ?: "jdbc:h2:mem:todo;DB_CLOSE_DELAY=-1")
+    environment("DB_USER", System.getenv("DB_USER") ?: "sa")
+    environment("DB_PASSWORD", System.getenv("DB_PASSWORD") ?: "")
 }
 
 tasks.named<Test>("test") {
