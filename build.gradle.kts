@@ -55,6 +55,10 @@ dependencies {
     // Security + Crypto
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.security:spring-security-crypto")
+    implementation("org.springframework.security:spring-security-oauth2-jose") // <-- traz nimbus-jose-jwt transitivamente
+    implementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
+
+
 
     // OpenAPI UI (opcional, para Swagger mais adiante)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")

@@ -8,3 +8,12 @@ spring:
       ddl-auto: validate
   flyway:
     locations: classpath:dbmigration
+jwt:
+  issuer: "tickr-api"
+  audience: "tickr-web"
+  secretB64: "${JWT_HS384_SECRET_B64}"  # era hmacSecretB64
+  ttlSeconds: 900                       # novo (se quiser outro, ajuste)
+  clockSkewSeconds: 60                  # era skewSeconds
+  version: 1
+  jwksUri: null
+  acceptRS256: false
