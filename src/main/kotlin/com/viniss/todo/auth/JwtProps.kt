@@ -5,13 +5,12 @@ import java.util.Base64
 
 @ConfigurationProperties(prefix = "jwt")
 data class JwtProps(
-    val issuer: String,
-    val audience: String,
+    val issuer: String = "tickr-api",
+    val audience: String = "tickr-web",
     val secretB64: String,             // usado por JwtService e testes
     val ttlSeconds: Long = 900,        // padrão: 15 min
     val clockSkewSeconds: Long = 60,   // skew bidirecional
     val version: Int = 1,              // claim de versão do token (v)
-    // Futuro / opcional:
     val jwksUri: String? = null,
     val acceptRS256: Boolean = false
 ) {

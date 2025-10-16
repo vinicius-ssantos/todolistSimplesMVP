@@ -8,22 +8,27 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Primary
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
-import org.springframework.stereotype.Component
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -34,9 +39,11 @@ import java.util.*
 /**
  * Integra TokenService + filtro de auth + rota protegida.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@SpringBootTest(
+    classes = [TokenIntegrationIT.TestSecurity::class, TokenIntegrationIT.TestController::class],
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK
+)
 @AutoConfigureMockMvc
-@Import(TokenIntegrationIT.TestSecurity::class, TokenIntegrationIT.TestController::class)
 class TokenIntegrationIT {
 
     @Autowired lateinit var mockMvc: MockMvc
@@ -44,6 +51,20 @@ class TokenIntegrationIT {
     @Autowired lateinit var props: JwtProps
 
     private val fixedNow: Instant = Instant.parse("2024-01-01T00:00:00Z")
+
+    companion object {
+        private val testSecretB64: String = Base64.getUrlEncoder().withoutPadding()
+            .encodeToString(ByteArray(64))
+
+        @JvmStatic
+        @DynamicPropertySource
+        fun registerJwtProperties(registry: DynamicPropertyRegistry) {
+            registry.add("jwt.secretB64") { testSecretB64 }
+            registry.add("jwt.issuer") { "tickr-api" }
+            registry.add("jwt.audience") { "tickr-web" }
+            registry.add("jwt.clockSkewSeconds") { 60 }
+        }
+    }
 
     // --- Casos ---
 
@@ -94,49 +115,32 @@ class TokenIntegrationIT {
 
     // --- Infra de teste (Security + Controller) ---
 
-    @Configuration
+    @TestConfiguration
+    @EnableConfigurationProperties(JwtProps::class)
     class TestSecurity {
 
         private val fixedNow: Instant = Instant.parse("2024-01-01T00:00:00Z")
 
         @Bean
-        fun jwtProperties(): JwtProps {
-            // 64 bytes => ok para HS384 (>= 48)
-            val secretB64 = Base64.getUrlEncoder().withoutPadding()
-                .encodeToString(ByteArray(64)) // zeros; para teste serve
-            return JwtProps(
-                issuer = "tickr-api",
-                audience = "tickr-web",
-                clockSkewSeconds = 60,
-                secretB64 = secretB64,
-                jwksUri = null,
-                acceptRS256 = false
-            )
-        }
-
-        @Bean
-        fun tokenService(props: JwtProps): TokenService =
+        @Primary
+        fun testTokenService(props: JwtProps): TokenService =
             TokenService(props) { fixedNow }
 
         @Bean
-        fun jwtAuthFilter(tokenService: TokenService) = TestJwtAuthFilter(tokenService)
-
-        @Bean
-        fun filterChain(http: HttpSecurity, filter: TestJwtAuthFilter): SecurityFilterChain =
+        fun filterChain(http: HttpSecurity, tokenService: TokenService): SecurityFilterChain =
             http.csrf { it.disable() }
                 .authorizeHttpRequests {
-                    it.requestMatchers("/__auth/public").permitAll()
+                    it.requestMatchers(AntPathRequestMatcher("/__auth/public")).permitAll()
                     it.anyRequest().authenticated()
                 }
-                .addFilterBefore(filter, UsernamePasswordAuthenticationFilter::class.java)
+                .addFilterBefore(TestJwtAuthFilter(tokenService), UsernamePasswordAuthenticationFilter::class.java)
                 .build()
     }
 
     /**
-     * Filtro mínimo p/ teste: extrai Bearer, valida com TokenService,
+     * Filtro minimo p/ teste: extrai Bearer, valida com TokenService,
      * injeta Authentication com principal = userId.
      */
-    @Component
     class TestJwtAuthFilter(private val tokenService: TokenService) : OncePerRequestFilter() {
 
         override fun doFilterInternal(
@@ -170,8 +174,10 @@ class TokenIntegrationIT {
     @RestController
     @RequestMapping("/__auth")
     class TestController {
-        @GetMapping("/ping")
-        fun ping(auth: Authentication): Map<String, String> =
-            mapOf("userId" to auth.name)
+        @GetMapping("/ping", produces = [MediaType.APPLICATION_JSON_VALUE])
+        fun ping(auth: Authentication): ResponseEntity<String> =
+            ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""{"userId":"${auth.name}"}""")
     }
 }
