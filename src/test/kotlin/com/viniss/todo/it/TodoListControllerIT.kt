@@ -35,13 +35,13 @@ import java.util.UUID
 @AutoConfigureMockMvc
 @WithMockUser(username = "00000000-0000-0000-0000-000000000001")
 @Import(TestMockMvcConfig::class)
-class TodoListControllerIT(
-    @Autowired private val mockMvc: MockMvc,
-    @Autowired private val objectMapper: ObjectMapper,
-    @Autowired private val todoListRepository: TodoListRepository,
-    @Autowired private val taskRepository: TaskRepository,
-    @Autowired private val appUserRepository: AppUserRepository
-) {
+abstract class TodoListControllerIT {
+
+    @Autowired protected lateinit var mockMvc: MockMvc
+    @Autowired protected lateinit var objectMapper: ObjectMapper
+    @Autowired protected lateinit var todoListRepository: TodoListRepository
+    @Autowired protected lateinit var taskRepository: TaskRepository
+    @Autowired protected lateinit var appUserRepository: AppUserRepository
 
     private lateinit var primaryList: TodoListEntity
     private lateinit var firstTask: TaskEntity

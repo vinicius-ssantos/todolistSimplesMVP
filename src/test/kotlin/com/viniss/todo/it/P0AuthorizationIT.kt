@@ -16,10 +16,10 @@ import java.util.UUID
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = true)
-class P0AuthorizationIT(
-    @Autowired private val mockMvc: MockMvc,
-    @Autowired private val mapper: ObjectMapper
-) {
+abstract class P0AuthorizationIT {
+
+    @Autowired protected lateinit var mockMvc: MockMvc
+    @Autowired protected lateinit var mapper: ObjectMapper
 
     private lateinit var tokenA: String
     private lateinit var tokenB: String
