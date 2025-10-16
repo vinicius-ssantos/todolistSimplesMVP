@@ -21,8 +21,8 @@ class TodoListEntity(
     var name: String
 ) : BaseAudit() {
 
-    @Column(name = "user_id", columnDefinition = "UUID")
-    var userId: UUID? = null   // ficara NOT NULL depois (V5)
+    @Column(name = "user_id", nullable = false)
+    lateinit var userId: UUID
 
     @OneToMany(
         mappedBy = "list",
