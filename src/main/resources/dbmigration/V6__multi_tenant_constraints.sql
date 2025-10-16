@@ -11,21 +11,21 @@ WHERE t.user_id <> (
 ALTER TABLE todo_list ADD CONSTRAINT uq_todolist_id_user UNIQUE (id, user_id);
 
 -- Refresh foreign keys with consistent naming
-ALTER TABLE todo_list DROP CONSTRAINT IF EXISTS fk_list_user;
+ALTER TABLE todo_list DROP CONSTRAINT fk_list_user;
 ALTER TABLE todo_list ADD CONSTRAINT fk_todolist_user
-    FOREIGN KEY (user_id) REFERENCES app_user(id);
+    FOREIGN KEY (user_id) REFERENCES app_user(id) ON DELETE CASCADE;
 
-ALTER TABLE task DROP CONSTRAINT IF EXISTS fk_task_list;
-ALTER TABLE task DROP CONSTRAINT IF EXISTS fk_task_user;
+ALTER TABLE task DROP CONSTRAINT fk_task_list;
+ALTER TABLE task DROP CONSTRAINT fk_task_user;
 
 ALTER TABLE task ADD CONSTRAINT fk_task_user
-    FOREIGN KEY (user_id) REFERENCES app_user(id);
+    FOREIGN KEY (user_id) REFERENCES app_user(id) ON DELETE CASCADE;
 
 ALTER TABLE task ADD CONSTRAINT fk_task_list_user
     FOREIGN KEY (list_id, user_id) REFERENCES todo_list(id, user_id)
     ON DELETE CASCADE;
 
 -- Multi-tenant friendly indexes
-CREATE INDEX IF NOT EXISTS ix_todolist_user_id_id ON todo_list(user_id, id);
-CREATE INDEX IF NOT EXISTS ix_task_user_id_list_id ON task(user_id, list_id);
-CREATE INDEX IF NOT EXISTS ix_task_user_id_status ON task(user_id, status);
+CREATE INDEX ix_todolist_user_id_id ON todo_list(user_id, id);
+CREATE INDEX ix_task_user_id_list_id ON task(user_id, list_id);
+CREATE INDEX ix_task_user_id_status ON task(user_id, status);

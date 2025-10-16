@@ -22,7 +22,7 @@ class TaskEntity(
     @Column(nullable = false, length = 140)
     var title: String,
 
-    @Column(columnDefinition = "text")
+    @Column(length = 1000)
     var notes: String? = null,
 
     @Enumerated(EnumType.STRING) @Column(nullable = false)
