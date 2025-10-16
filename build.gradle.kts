@@ -37,6 +37,7 @@ dependencies {
 
     // Flyway / DB
     implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("com.h2database:h2:2.2.224")
 
 
@@ -46,6 +47,10 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.13")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:postgresql")
+    testImplementation("com.github.stefanbirkner:system-lambda:1.2.1")
+    testRuntimeOnly("org.postgresql:postgresql")
 
     // Security + Crypto
     implementation("org.springframework.boot:spring-boot-starter-security")
@@ -72,7 +77,12 @@ jacoco {
 }
 
 tasks.withType<Test>().configureEach {
-            useJUnitPlatform()
+    useJUnitPlatform()
+    environment("DB_URL", System.getenv("DB_URL") ?: "jdbc:h2:mem:todo;DB_CLOSE_DELAY=-1")
+    environment("DB_USER", System.getenv("DB_USER") ?: "sa")
+    environment("DB_PASSWORD", System.getenv("DB_PASSWORD") ?: "")
+    jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
+    jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
 }
 
 tasks.named<Test>("test") {

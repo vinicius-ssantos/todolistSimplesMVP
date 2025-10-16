@@ -22,7 +22,7 @@ class TaskEntity(
     @Column(nullable = false, length = 140)
     var title: String,
 
-    @Column(columnDefinition = "text")
+    @Column(length = 1000)
     var notes: String? = null,
 
     @Enumerated(EnumType.STRING) @Column(nullable = false)
@@ -37,8 +37,8 @@ class TaskEntity(
     var position: Int = 0
 ) : BaseAudit() {
 
-    @Column(name = "user_id", columnDefinition = "UUID")
-    var userId: UUID? = null
+    @Column(name = "user_id", nullable = false)
+    lateinit var userId: UUID
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

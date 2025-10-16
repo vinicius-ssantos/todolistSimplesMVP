@@ -23,12 +23,12 @@ import java.util.UUID
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import(com.viniss.todo.config.TestMockMvcConfig::class)
-class OwnerIsolationIT(
-    @Autowired private val mockMvc: MockMvc,
-    @Autowired private val appUsers: AppUserRepository,
-    @Autowired private val lists: com.viniss.todo.repo.TodoListRepository,
-    @Autowired private val tasks: com.viniss.todo.repo.TaskRepository
-) {
+abstract class OwnerIsolationIT {
+
+    @Autowired protected lateinit var mockMvc: MockMvc
+    @Autowired protected lateinit var appUsers: AppUserRepository
+    @Autowired protected lateinit var lists: com.viniss.todo.repo.TodoListRepository
+    @Autowired protected lateinit var tasks: com.viniss.todo.repo.TaskRepository
     lateinit var ownerId: UUID
     lateinit var intruderId: UUID
     lateinit var ownersListId: UUID

@@ -19,13 +19,13 @@ import java.util.UUID
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class AuthControllerIT @Autowired constructor(
-    private val mockMvc: MockMvc,
-    private val objectMapper: ObjectMapper,
-    private val todoListRepository: TodoListRepository,
-    private val taskRepository: TaskRepository,
-    private val appUserRepository: AppUserRepository
-) {
+abstract class AuthControllerIT {
+
+    @Autowired protected lateinit var mockMvc: MockMvc
+    @Autowired protected lateinit var objectMapper: ObjectMapper
+    @Autowired protected lateinit var todoListRepository: TodoListRepository
+    @Autowired protected lateinit var taskRepository: TaskRepository
+    @Autowired protected lateinit var appUserRepository: AppUserRepository
 
     @BeforeEach
     fun cleanDatabase() {
