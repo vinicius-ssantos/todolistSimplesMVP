@@ -1,51 +1,65 @@
 package com.viniss.todo.auth
 
 
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.stereotype.Component
-import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.*
+import javax.crypto.SecretKey
 
 
 @Component
-class JwtService {
+class JwtService(private val props: JwtProps) {
 
     private val secret: String =
         System.getenv("APP_JWT_SECRET") ?: "dev-secret-please-change-dev-secret-please-change-1234567890"
 
 
-    private val key = Keys.hmacShaKeyFor(secret.toByteArray(StandardCharsets.UTF_8))
-    private val ttlSeconds: Long = 3600 // 1h
+    private val key: SecretKey = run {
+        val bytes = Base64.getDecoder().decode(props.secretB64)
+        require(bytes.size >= 48) { "JWT secret must be >= 48 bytes after Base64 decode" }
+        Keys.hmacShaKeyFor(bytes) // jjwt 0.12.x
+    }
 
-
-    fun generateToken(email: String, userId: UUID): String {
+    fun generateToken(userId: UUID, email: String): String {
         val now = Instant.now()
+        val exp = now.plusSeconds(props.ttlSeconds)
         return Jwts.builder()
-            .subject(email)
-            .claim("uid", userId.toString())
-            .issuedAt(Date.from(now))
-            .expiration(Date.from(now.plusSeconds(ttlSeconds)))
-            .signWith(key)
+            .id(UUID.randomUUID().toString())               // jti
+            .subject(userId.toString())                     // sub = UUID
+            .issuer(props.issuer)                           // iss
+            .audience().add(props.audience).and()                // aud
+            .issuedAt(Date.from(now))              // iat
+            .notBefore(Date.from(now))             // nbf
+            .expiration(Date.from(exp))            // exp
+            .claim("email", email)
+            .claim("v", props.version)
+            // .claim("scp", listOf("user"))                      // opcional
+            .signWith(key, Jwts.SIG.HS384)             // fixa HS384
             .compact()
     }
 
+    private fun parseClaims(token: String): Claims =
+        Jwts.parser()
+            .requireIssuer(props.issuer)
+            .requireAudience(props.audience)
+            .clockSkewSeconds(props.clockSkewSeconds)
+            .verifyWith(key)
+            .build()
+            .parseSignedClaims(token)
+            .payload
 
-    fun extractEmail(token: String): String =
-        Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload.subject
+
+    fun isValid(token: String): Boolean = runCatching { parseClaims(token) }.isSuccess
+
+    fun extractUserId(token: String): UUID = UUID.fromString(parseClaims(token).subject)
+
+    fun extractEmail(token: String): String = parseClaims(token)["email", String::class.java]
 
 
-    fun extractUserId(token: String): UUID =
-        UUID.fromString(
-            Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload["uid", String::class.java]
-        )
 
 
-    fun isValid(token: String): Boolean = try {
-        Jwts.parser().verifyWith(key).build().parseSignedClaims(token)
-        true
-    } catch (ex: Exception) {
-        false
-    }
+
 }
