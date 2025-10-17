@@ -11,7 +11,7 @@ import java.util.Base64.getEncoder
 import javax.crypto.SecretKey
 
 
-class JwtServiceTest {
+class JjwtHmacTokenServiceTest {
 
     private fun props(
         issuer: String = "tickr-api",
@@ -31,7 +31,7 @@ class JwtServiceTest {
 
     @Test
     fun `token contains required claims and validates`() {
-        val jwt = JwtService(props())
+        val jwt: TokenService = JjwtHmacTokenService(props())
         val userId = UUID.randomUUID()
 
         val token = jwt.generateToken(userId, "dev@example.com")
@@ -48,8 +48,8 @@ class JwtServiceTest {
     @Test
     fun `issuer mismatch should invalidate`() {
         val secret = strongSecretB64()
-        val good = JwtService(props(issuer = "tickr-api", secretB64 = secret))
-        val bad = JwtService(props(issuer = "other-issuer", secretB64 = secret))
+        val good: TokenService = JjwtHmacTokenService(props(issuer = "tickr-api", secretB64 = secret))
+        val bad: TokenService = JjwtHmacTokenService(props(issuer = "other-issuer", secretB64 = secret))
 
         val t = good.generateToken(UUID.randomUUID(), "a@b.com")
         assertFalse(bad.isValid(t), "Different issuer must be rejected")
@@ -58,8 +58,8 @@ class JwtServiceTest {
     @Test
     fun `audience mismatch should invalidate`() {
         val secret = strongSecretB64()
-        val good = JwtService(props(audience = "tickr-web", secretB64 = secret))
-        val bad = JwtService(props(audience = "other-aud", secretB64 = secret))
+        val good: TokenService = JjwtHmacTokenService(props(audience = "tickr-web", secretB64 = secret))
+        val bad: TokenService = JjwtHmacTokenService(props(audience = "other-aud", secretB64 = secret))
 
         val t = good.generateToken(UUID.randomUUID(), "a@b.com")
         assertFalse(bad.isValid(t), "Different audience must be rejected")
@@ -68,7 +68,7 @@ class JwtServiceTest {
     @Test
     fun `skew within +60s future iat-nbf should be accepted`() {
         val p = props(skewSeconds = 60)
-        val jwt = JwtService(p)
+        val jwt: TokenService = JjwtHmacTokenService(p)
         val futureAt = Instant.now().plusSeconds(30) // dentro do skew
 
         val token = buildTokenAt(futureAt, p, UUID.randomUUID(), "a@b.com")
@@ -78,7 +78,7 @@ class JwtServiceTest {
     @Test
     fun `skew beyond +60s future iat-nbf should be rejected`() {
         val p = props(skewSeconds = 60)
-        val jwt = JwtService(p)
+        val jwt: TokenService = JjwtHmacTokenService(p)
         val futureAt = Instant.now().plusSeconds(120) // fora do skew
 
         val token = buildTokenAt(futureAt, p, UUID.randomUUID(), "a@b.com")
@@ -90,7 +90,7 @@ class JwtServiceTest {
         // 16 bytes → muito fraco
         val weak = getEncoder().encodeToString(ByteArray(16))
         val ex = assertThrows(IllegalArgumentException::class.java) {
-            JwtService(props(secretB64 = weak))
+            JjwtHmacTokenService(props(secretB64 = weak))
         }
         assertTrue(ex.message!!.contains(">= 48 bytes"))
     }
@@ -98,7 +98,7 @@ class JwtServiceTest {
     @Test
     fun `expired token should be rejected`() {
         val p = props(ttlSeconds = 60) // 1 min de vida
-        val jwt = JwtService(p)
+        val jwt: TokenService = JjwtHmacTokenService(p)
         val past = Instant.now().minusSeconds(3600) // bem no passado
         val t = buildTokenAt(past, p, UUID.randomUUID(), "a@b.com") // exp = past + 60s -> já vencido
         assertFalse(jwt.isValid(t), "Expired token must be invalid")

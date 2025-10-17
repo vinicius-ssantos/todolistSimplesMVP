@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service
 class AuthService(
     private val repo: AppUserRepository,
     private val encoder: PasswordEncoder,
-    private val jwt: JwtService
+    private val jwt: TokenService
 ) {
     fun register(email: String, rawPassword: String): AuthResponse {
         require(email.isNotBlank()) { "email is required" }
