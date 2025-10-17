@@ -69,6 +69,3 @@ class JjwtHmacTokenService(
     override fun extractEmail(token: String): String =
         parseClaims(token)["email", String::class.java]
 }
-
-// Backwards compatibility for places still injecting JwtService.
-typealias JwtService = JjwtHmacTokenService
