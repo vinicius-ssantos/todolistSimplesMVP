@@ -36,6 +36,11 @@ SERVER_PORT=8080 ./gradlew bootRun
 
 The API comes up under `/api/**`. Generated Flyway migrations will initialize the schema automatically.
 
+### API documentation
+
+With the server running, Swagger UI is available at `http://localhost:8081/swagger-ui.html`.  
+All routes (except `/api/auth/**`) require a Bearer JWT token; the UI includes the `Authorize` button to paste the token returned by `/api/auth/login`.
+
 ### Running tests
 
 ```bash
