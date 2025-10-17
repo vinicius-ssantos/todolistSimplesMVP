@@ -7,14 +7,18 @@ import java.util.Base64
 data class JwtProps(
     val issuer: String = "tickr-api",
     val audience: String = "tickr-web",
-    val secretB64: String,             // usado por JwtService e testes
-    val ttlSeconds: Long = 900,        // padrão: 15 min
-    val clockSkewSeconds: Long = 60,   // skew bidirecional
-    val version: Int = 1,              // claim de versão do token (v)
+    val secretB64: String,
+    val ttlSeconds: Long = 900,
+    val clockSkewSeconds: Long = 60,
+    val version: Int = 1,
     val jwksUri: String? = null,
-    val acceptRS256: Boolean = false
+    val acceptRS256: Boolean = false,
+    val rsaPrivateKeyPem: String? = null,
+    val rsaKeyId: String? = null,
+    val jwksCacheTtlSeconds: Long = 300,
+    val jwksCacheRefreshSeconds: Long = 30
 ) {
-    /** Decodifica o HMAC (aceita Base64 URL-safe) e valida tamanho (HS384 → ≥ 48 bytes). */
+    /** Decodifica o HMAC (aceita Base64 URL-safe) e valida tamanho (HS384 >= 48 bytes). */
     val hmacSecretBytes: ByteArray by lazy {
         val bytes = try {
             Base64.getUrlDecoder().decode(secretB64)

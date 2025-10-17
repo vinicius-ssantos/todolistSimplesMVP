@@ -9,6 +9,12 @@ import java.time.Clock
 @EnableConfigurationProperties(JwtProps::class)
 class JwtConfig {
     @Bean
-    fun tokenService(props: JwtProps): TokenService =
-        JjwtHmacTokenService(props) { Clock.systemUTC().instant() }
+    fun tokenService(props: JwtProps): TokenService {
+        val nowProvider = { Clock.systemUTC().instant() }
+        return if (props.acceptRS256) {
+            NimbusRsaTokenService(props, nowProvider)
+        } else {
+            JjwtHmacTokenService(props, nowProvider)
+        }
+    }
 }

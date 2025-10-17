@@ -17,3 +17,7 @@ jwt:
   version: 1
   jwksUri: null
   acceptRS256: false
+  rsaPrivateKeyPem: null
+  rsaKeyId: null
+  jwksCacheTtlSeconds: 300
+  jwksCacheRefreshSeconds: 30
