@@ -1,8 +1,10 @@
 package com.viniss.todo.it
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.viniss.todo.auth.InvalidTokenException
 import com.viniss.todo.auth.JwtProps
 import com.viniss.todo.auth.JjwtHmacTokenService
+import com.viniss.todo.auth.JsonAuthEntryPoint
 import com.viniss.todo.auth.TokenService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
@@ -18,6 +20,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.core.Authentication
@@ -27,6 +30,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.context.DynamicPropertyRegistry
@@ -75,6 +79,8 @@ class TokenIntegrationIT {
     fun `sem token - 401`() {
         mockMvc.perform(get("/__auth/ping"))
             .andExpect(status().isUnauthorized)
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.error").value("invalid_token"))
     }
 
     @Test
@@ -108,6 +114,8 @@ class TokenIntegrationIT {
 
         mockMvc.perform(get("/__auth/ping").header("Authorization", "Bearer $jwt"))
             .andExpect(status().isUnauthorized)
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.error").value("invalid_token"))
     }
 
     // util p/ gerar segredo forte base64-url
@@ -126,18 +134,34 @@ class TokenIntegrationIT {
         private val fixedNow: Instant = Instant.parse("2024-01-01T00:00:00Z")
 
         @Bean
+        fun testObjectMapper(): ObjectMapper =
+            ObjectMapper().findAndRegisterModules()
+
+        @Bean
+        fun jsonAuthEntryPoint(mapper: ObjectMapper): JsonAuthEntryPoint =
+            JsonAuthEntryPoint(mapper)
+
+        @Bean
         @Primary
         fun testTokenService(props: JwtProps): TokenService =
             JjwtHmacTokenService(props) { fixedNow }
 
         @Bean
-        fun filterChain(http: HttpSecurity, tokenService: TokenService): SecurityFilterChain =
+        fun filterChain(
+            http: HttpSecurity,
+            tokenService: TokenService,
+            entryPoint: JsonAuthEntryPoint
+        ): SecurityFilterChain =
             http.csrf { it.disable() }
+                .exceptionHandling { it.authenticationEntryPoint(entryPoint) }
                 .authorizeHttpRequests {
                     it.requestMatchers(AntPathRequestMatcher("/__auth/public")).permitAll()
                     it.anyRequest().authenticated()
                 }
-                .addFilterBefore(TestJwtAuthFilter(tokenService), UsernamePasswordAuthenticationFilter::class.java)
+                .addFilterBefore(
+                    TestJwtAuthFilter(tokenService, entryPoint),
+                    UsernamePasswordAuthenticationFilter::class.java
+                )
                 .build()
     }
 
@@ -145,22 +169,30 @@ class TokenIntegrationIT {
      * Filtro minimo p/ teste: extrai Bearer, valida com TokenService,
      * injeta Authentication com principal = userId.
      */
-    class TestJwtAuthFilter(private val tokenService: TokenService) : OncePerRequestFilter() {
+    class TestJwtAuthFilter(
+        private val tokenService: TokenService,
+        private val entryPoint: JsonAuthEntryPoint
+    ) : OncePerRequestFilter() {
 
         override fun doFilterInternal(
             request: HttpServletRequest,
             response: HttpServletResponse,
             chain: FilterChain
         ) {
-            val authz = request.getHeader("Authorization")
-            if (authz == null || !authz.startsWith("Bearer ")) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+            val authz = request.getHeader("Authorization")?.trim()
+            if (authz.isNullOrBlank() || !authz.startsWith("Bearer ", ignoreCase = true)) {
+                chain.doFilter(request, response)
                 return
             }
-            val token = authz.removePrefix("Bearer ").trim()
+
+            val token = authz.substring(7).trim()
             try {
                 if (!tokenService.isValid(token)) {
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                    entryPoint.commence(
+                        request,
+                        response,
+                        BadCredentialsException("invalid_token")
+                    )
                     return
                 }
                 val userId = tokenService.extractUserId(token)
@@ -169,9 +201,17 @@ class TokenIntegrationIT {
                 SecurityContextHolder.getContext().authentication = authentication
                 chain.doFilter(request, response)
             } catch (_: InvalidTokenException) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                entryPoint.commence(
+                    request,
+                    response,
+                    BadCredentialsException("invalid_token")
+                )
             } catch (_: IllegalArgumentException) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                entryPoint.commence(
+                    request,
+                    response,
+                    BadCredentialsException("invalid_token")
+                )
             }
         }
 

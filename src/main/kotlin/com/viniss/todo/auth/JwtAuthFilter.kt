@@ -3,6 +3,7 @@ package com.viniss.todo.auth
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
@@ -11,7 +12,8 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 @Component
 class JwtAuthFilter(
-    private val jwt: TokenService
+    private val jwt: TokenService,
+    private val entryPoint: JsonAuthEntryPoint
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(req: HttpServletRequest, res: HttpServletResponse, chain: FilterChain) {
@@ -32,10 +34,10 @@ class JwtAuthFilter(
                     SecurityContextHolder.getContext().authentication = authToken
                 }
             } catch (_: InvalidTokenException) {
-                res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "invalid_token")
+                entryPoint.commence(req, res, BadCredentialsException("invalid_token"))
                 return
             } catch (_: IllegalArgumentException) {
-                res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "invalid_token")
+                entryPoint.commence(req, res, BadCredentialsException("invalid_token"))
                 return
             }
         }
