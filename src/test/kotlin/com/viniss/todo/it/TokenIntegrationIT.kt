@@ -2,10 +2,12 @@ package com.viniss.todo.it
 
 import com.viniss.todo.auth.InvalidTokenException
 import com.viniss.todo.auth.JwtProps
+import com.viniss.todo.auth.JjwtHmacTokenService
 import com.viniss.todo.auth.TokenService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -51,6 +53,7 @@ class TokenIntegrationIT {
     @Autowired lateinit var props: JwtProps
 
     private val fixedNow: Instant = Instant.parse("2024-01-01T00:00:00Z")
+    private val defaultEmail: String = "user@example.com"
 
     companion object {
         private val testSecretB64: String = Base64.getUrlEncoder().withoutPadding()
@@ -77,7 +80,8 @@ class TokenIntegrationIT {
     @Test
     fun `token valido - 200 e retorna userId`() {
         val uid = UUID.randomUUID()
-        val jwt = tokenService.signHS384(uid, ttlSeconds = 3600)
+        val jwt = tokenService.generateToken(uid, defaultEmail)
+        assertTrue(tokenService.isValid(jwt), "Token should be valid for the configured service")
 
         mockMvc.perform(get("/__auth/ping").header("Authorization", "Bearer $jwt"))
             .andExpect(status().isOk)
@@ -98,9 +102,9 @@ class TokenIntegrationIT {
             jwksUri = null,
             acceptRS256 = false
         )
-        val badSigner = TokenService(badProps) { fixedNow }
+        val badSigner = JjwtHmacTokenService(badProps) { fixedNow }
 
-        val jwt = badSigner.signHS384(uid, ttlSeconds = 3600)
+        val jwt = badSigner.generateToken(uid, defaultEmail)
 
         mockMvc.perform(get("/__auth/ping").header("Authorization", "Bearer $jwt"))
             .andExpect(status().isUnauthorized)
@@ -124,7 +128,7 @@ class TokenIntegrationIT {
         @Bean
         @Primary
         fun testTokenService(props: JwtProps): TokenService =
-            TokenService(props) { fixedNow }
+            JjwtHmacTokenService(props) { fixedNow }
 
         @Bean
         fun filterChain(http: HttpSecurity, tokenService: TokenService): SecurityFilterChain =
@@ -155,12 +159,18 @@ class TokenIntegrationIT {
             }
             val token = authz.removePrefix("Bearer ").trim()
             try {
-                val p = tokenService.parseAndValidate(token)
+                if (!tokenService.isValid(token)) {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                    return
+                }
+                val userId = tokenService.extractUserId(token)
                 val authentication: Authentication =
-                    UsernamePasswordAuthenticationToken(p.userId.toString(), null, emptyList())
+                    UsernamePasswordAuthenticationToken(userId.toString(), null, emptyList())
                 SecurityContextHolder.getContext().authentication = authentication
                 chain.doFilter(request, response)
             } catch (_: InvalidTokenException) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+            } catch (_: IllegalArgumentException) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
             }
         }

@@ -8,6 +8,7 @@ import java.time.Clock
 @Configuration
 @EnableConfigurationProperties(JwtProps::class)
 class JwtConfig {
-    @Bean fun tokenService(props: JwtProps): TokenService =
-        TokenService(props) { Clock.systemUTC().instant() }
+    @Bean
+    fun tokenService(props: JwtProps): TokenService =
+        JjwtHmacTokenService(props) { Clock.systemUTC().instant() }
 }
