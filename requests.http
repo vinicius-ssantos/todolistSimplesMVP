@@ -90,12 +90,12 @@ Accept: application/json
 
 
 ### Registrar usuário
-POST http://localhost:8081/api/auth/register
+POST http://localhost:8082/api/auth/register
 Content-Type: application/json
 
 {
-  "email": "dev@example3.com",
-  "password": "secret123"
+  "email": "usuario@gmail.com",
+  "password": "senha123"
 }
 
 

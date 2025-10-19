@@ -23,6 +23,11 @@
 | `jwt.jwksCacheTtlSeconds` | `300` | JWKS cache TTL | Tune to JWKS rotation policy |
 | `jwt.jwksCacheRefreshSeconds` | `30` | Re-fetch margin | Prevent stale keys |
 
+## Frontend (v0) Integration
+
+- Add the environment variable `NEXT_PUBLIC_API_BASE_URL` in the **Vars** sidebar of your v0 project. Point it to the backend URL exposed via ngrok, e.g. `https://abc123.ngrok.io/api`. This ensures the generated Next.js client calls the correct API base.
+- CORS is preconfigured to accept requests from `https://v0.dev`, `https://v0.app`, and any subdomains under `*.v0.dev`/`*.v0.app`. Override `app.cors.allowed-origin-patterns` or `app.cors.allowed-origins` if you need to permit additional domains.
+
 ## HS384 (Default)
 
 1. Generate a 48+ byte secret (Base64 URL-safe preferred).
