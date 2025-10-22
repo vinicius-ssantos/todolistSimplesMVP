@@ -2,11 +2,13 @@ package com.viniss.todo.repo
 
 import com.viniss.todo.domain.TaskEntity
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import java.util.UUID
 
-interface TaskRepository : JpaRepository<TaskEntity, UUID> {
+interface TaskRepository : JpaRepository<TaskEntity, UUID>, JpaSpecificationExecutor<TaskEntity> {
+
     fun findByListIdOrderByPositionAsc(listId: UUID): List<TaskEntity>
     fun findByIdAndUserId(id: UUID, userId: UUID): TaskEntity?
 

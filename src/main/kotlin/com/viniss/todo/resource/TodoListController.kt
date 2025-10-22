@@ -8,6 +8,11 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
+import com.viniss.todo.api.param.StatusParamMapper
+import com.viniss.todo.domain.Priority
 
 @RestController
 @RequestMapping("/api/v1/lists")
@@ -19,7 +24,8 @@ class TodoListController(
     private val updateTaskUseCase: UpdateTaskUseCase,
     private val getTaskUseCase: GetTaskUseCase,
     private val deleteTodoListUseCase: DeleteTodoListUseCase,
-    private val deleteTaskUseCase: DeleteTaskUseCase
+    private val deleteTaskUseCase: DeleteTaskUseCase,
+    private val listTasksUseCase: ListTasksUseCase
 ) {
     @GetMapping
     fun getAll(): List<TodoListResponse> =
@@ -83,5 +89,26 @@ class TodoListController(
         deleteTaskUseCase.delete(listId, taskId)
         return ResponseEntity.noContent().build()
     }
+
+    // paginação + filtros de tarefas de uma lista
+    @GetMapping("/{listId}/tasks")
+    fun listTasks(
+        @PathVariable listId: UUID,
+        @RequestParam(required = false, defaultValue = "all") due: String?,
+        @RequestParam(required = false, defaultValue = "all") status: String?,
+        @RequestParam(required = false) search: String?,
+        @RequestParam(required = false) priority: String?,
+        @PageableDefault(size = 20) pageable: Pageable
+    ): ResponseEntity<Page<TaskResponse>> {
+        val filters = TaskFilters(
+            due = DueFilter.fromParam(due),
+            statuses = StatusParamMapper.from(status),
+            search = search,
+            priority = priority?.let { runCatching { Priority.valueOf(it) }.getOrNull() }
+        )
+        val page = listTasksUseCase.listByFilters(listId, filters, pageable).map { it.toResponse() }
+        return ResponseEntity.ok(page)
+    }
+
 
 }
