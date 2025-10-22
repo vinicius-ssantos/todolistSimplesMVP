@@ -57,20 +57,20 @@ abstract class OwnerIsolationIT {
     @Test
     @WithMockUser(username = "00000000-0000-0000-0000-0000000000b2") // intruso
     fun `GET list de outro usuario - 404`() {
-        mockMvc.get("/v1/lists/$ownersListId").andExpect { status { isNotFound() } }
+        mockMvc.get("$LISTS_BASE_PATH/$ownersListId").andExpect { status { isNotFound() } }
     }
 
     @Test
     @WithMockUser(username = "00000000-0000-0000-0000-0000000000b2")
     fun `GET task de outro usuario - 404`() {
-        mockMvc.get("/v1/lists/$ownersListId/tasks/$ownersTaskId").andExpect { status { isNotFound() } }
+        mockMvc.get("$LISTS_BASE_PATH/$ownersListId/tasks/$ownersTaskId").andExpect { status { isNotFound() } }
     }
 
     // ---------- UPDATE ----------
     @Test
     @WithMockUser(username = "00000000-0000-0000-0000-0000000000b2")
     fun `PATCH list de outro usuario - 404`() {
-        mockMvc.patch("/v1/lists/$ownersListId") {
+        mockMvc.patch("$LISTS_BASE_PATH/$ownersListId") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"name":"X"}"""
         }.andExpect { status { isNotFound() } }
@@ -79,7 +79,7 @@ abstract class OwnerIsolationIT {
     @Test
     @WithMockUser(username = "00000000-0000-0000-0000-0000000000b2")
     fun `PATCH task de outro usuario - 404`() {
-        mockMvc.patch("/v1/lists/$ownersListId/tasks/$ownersTaskId") {
+        mockMvc.patch("$LISTS_BASE_PATH/$ownersListId/tasks/$ownersTaskId") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"title":"X"}"""
         }.andExpect { status { isNotFound() } }
@@ -89,7 +89,7 @@ abstract class OwnerIsolationIT {
     @Test
     @WithMockUser(username = "00000000-0000-0000-0000-0000000000b2")
     fun `POST task em list de outro usuario - 404 da lista`() {
-        mockMvc.post("/v1/lists/$ownersListId/tasks") {
+        mockMvc.post("$LISTS_BASE_PATH/$ownersListId/tasks") {
             contentType = MediaType.APPLICATION_JSON
             content = """{"title":"nao deveria criar"}"""
         }.andExpect { status { isNotFound() } }
@@ -99,13 +99,13 @@ abstract class OwnerIsolationIT {
     @Test
     @WithMockUser(username = "00000000-0000-0000-0000-0000000000b2")
     fun `DELETE list de outro usuario -  404`() {
-        mockMvc.delete("/v1/lists/$ownersListId").andExpect { status { isNotFound() } }
+        mockMvc.delete("$LISTS_BASE_PATH/$ownersListId").andExpect { status { isNotFound() } }
     }
 
     @Test
     @WithMockUser(username = "00000000-0000-0000-0000-0000000000b2")
     fun `DELETE task de outro usuario -  404`() {
-        mockMvc.delete("/v1/lists/$ownersListId/tasks/$ownersTaskId").andExpect { status { isNotFound() } }
+        mockMvc.delete("$LISTS_BASE_PATH/$ownersListId/tasks/$ownersTaskId").andExpect { status { isNotFound() } }
     }
 
     // Sanity check: o dono consegue acessar normalmente
@@ -113,7 +113,7 @@ abstract class OwnerIsolationIT {
     @WithMockUser(username = "00000000-0000-0000-0000-0000000000a1")
     fun `owner ainda acessa`() {
         val before = tasks.count()
-        mockMvc.delete("/v1/lists/$ownersListId/tasks/$ownersTaskId").andExpect { status { isNoContent() } }
+        mockMvc.delete("$LISTS_BASE_PATH/$ownersListId/tasks/$ownersTaskId").andExpect { status { isNoContent() } }
         assertThat(tasks.count()).isEqualTo(before - 1)
     }
 }

@@ -78,7 +78,7 @@ abstract class TodoListControllerIT {
 
     @Test
     fun `should list all todo lists with their tasks`() {
-        val result = mockMvc.get("/v1/lists")
+        val result = mockMvc.get(LISTS_BASE_PATH)
             .andExpect {
                 status { isOk() }
             }
@@ -99,7 +99,7 @@ abstract class TodoListControllerIT {
     fun `should create a todo list`() {
         val payload = """{"name":"Estudos"}"""
 
-        val result = mockMvc.post("/v1/lists") {
+        val result = mockMvc.post(LISTS_BASE_PATH) {
             contentType = MediaType.APPLICATION_JSON
             content = payload
         }.andExpect {
@@ -119,7 +119,7 @@ abstract class TodoListControllerIT {
     fun `should create a task with default position`() {
         val payload = """{"title":"Criar endpoint POST"}"""
 
-        val result = mockMvc.post("/v1/lists/${primaryList.id}/tasks") {
+        val result = mockMvc.post("$LISTS_BASE_PATH/${primaryList.id}/tasks") {
             contentType = MediaType.APPLICATION_JSON
             content = payload
         }.andExpect {
@@ -139,7 +139,7 @@ abstract class TodoListControllerIT {
     fun `should return bad request when creating list with blank name`() {
         val payload = """{"name":"   "}"""
 
-        mockMvc.post("/v1/lists") {
+        mockMvc.post(LISTS_BASE_PATH) {
             contentType = MediaType.APPLICATION_JSON
             content = payload
         }.andExpect {
@@ -152,7 +152,7 @@ abstract class TodoListControllerIT {
     fun `should return bad request when creating task with blank title`() {
         val payload = """{"title":"    "}"""
 
-        mockMvc.post("/v1/lists/${primaryList.id}/tasks") {
+        mockMvc.post("$LISTS_BASE_PATH/${primaryList.id}/tasks") {
             contentType = MediaType.APPLICATION_JSON
             content = payload
         }.andExpect {
@@ -166,7 +166,7 @@ abstract class TodoListControllerIT {
         val listId = UUID.randomUUID()
         val payload = """{"title":"Nova task"}"""
 
-        mockMvc.post("/v1/lists/$listId/tasks") {
+        mockMvc.post("$LISTS_BASE_PATH/$listId/tasks") {
             contentType = MediaType.APPLICATION_JSON
             content = payload
         }.andExpect {
@@ -179,7 +179,7 @@ abstract class TodoListControllerIT {
     fun `should reject tasks with duplicated position`() {
         val payload = """{"title":"Duplicada","position":0}"""
 
-        mockMvc.post("/v1/lists/${primaryList.id}/tasks") {
+        mockMvc.post("$LISTS_BASE_PATH/${primaryList.id}/tasks") {
             contentType = MediaType.APPLICATION_JSON
             content = payload
         }.andExpect {
@@ -192,7 +192,7 @@ abstract class TodoListControllerIT {
 
     @Test
     fun `should get todo list by id`() {
-        val result = mockMvc.get("/v1/lists/${primaryList.id}")
+        val result = mockMvc.get("$LISTS_BASE_PATH/${primaryList.id}")
             .andExpect {
                 status { isOk() }
             }
@@ -208,7 +208,7 @@ abstract class TodoListControllerIT {
 
     @Test
     fun `should get task by id`() {
-        val result = mockMvc.get("/v1/lists/${primaryList.id}/tasks/${firstTask.id}")
+        val result = mockMvc.get("$LISTS_BASE_PATH/${primaryList.id}/tasks/${firstTask.id}")
             .andExpect {
                 status { isOk() }
             }
@@ -225,7 +225,7 @@ abstract class TodoListControllerIT {
     fun `should return not found when getting non-existent list`() {
         val listId = UUID.randomUUID()
 
-        mockMvc.get("/v1/lists/$listId")
+        mockMvc.get("$LISTS_BASE_PATH/$listId")
             .andExpect {
                 status { isNotFound() }
                 jsonPath("$.message") { value("Todo list $listId not found") }
@@ -236,7 +236,7 @@ abstract class TodoListControllerIT {
     fun `should return not found when getting non-existent task`() {
         val taskId = UUID.randomUUID()
 
-        mockMvc.get("/v1/lists/${primaryList.id}/tasks/$taskId")
+        mockMvc.get("$LISTS_BASE_PATH/${primaryList.id}/tasks/$taskId")
             .andExpect {
                 status { isNotFound() }
                 jsonPath("$.message") { value("Task with id $taskId not found") }
@@ -253,7 +253,7 @@ abstract class TodoListControllerIT {
                 position = 0
             ).apply { userId = seedUserId })
 
-        mockMvc.get("/v1/lists/${primaryList.id}/tasks/${otherTask.id}")
+        mockMvc.get("$LISTS_BASE_PATH/${primaryList.id}/tasks/${otherTask.id}")
             .andExpect {
                 status { isNotFound() }
                 jsonPath("$.message") { value("Task with id ${otherTask.id} not found") }
@@ -266,7 +266,7 @@ abstract class TodoListControllerIT {
     fun `should update todo list name`() {
         val payload = """{"name":"Projetos Atualizados"}"""
 
-        mockMvc.patch("/v1/lists/${primaryList.id}") {
+        mockMvc.patch("$LISTS_BASE_PATH/${primaryList.id}") {
             contentType = MediaType.APPLICATION_JSON
             content = payload
         }.andExpect {
@@ -288,7 +288,7 @@ abstract class TodoListControllerIT {
             "position": 5
         }"""
 
-        mockMvc.patch("/v1/lists/${primaryList.id}/tasks/${firstTask.id}") {
+        mockMvc.patch("$LISTS_BASE_PATH/${primaryList.id}/tasks/${firstTask.id}") {
             contentType = MediaType.APPLICATION_JSON
             content = payload
         }.andExpect {
@@ -311,7 +311,7 @@ abstract class TodoListControllerIT {
             "status": "DONE"
         }"""
 
-        mockMvc.patch("/v1/lists/${primaryList.id}/tasks/${firstTask.id}") {
+        mockMvc.patch("$LISTS_BASE_PATH/${primaryList.id}/tasks/${firstTask.id}") {
             contentType = MediaType.APPLICATION_JSON
             content = payload
         }.andExpect {
@@ -329,7 +329,7 @@ abstract class TodoListControllerIT {
     fun `should return bad request when updating list with blank name`() {
         val payload = """{"name":"   "}"""
 
-        mockMvc.patch("/v1/lists/${primaryList.id}") {
+        mockMvc.patch("$LISTS_BASE_PATH/${primaryList.id}") {
             contentType = MediaType.APPLICATION_JSON
             content = payload
         }.andExpect {
@@ -342,7 +342,7 @@ abstract class TodoListControllerIT {
     fun `should return bad request when updating task with blank title`() {
         val payload = """{"title":"   "}"""
 
-        mockMvc.patch("/v1/lists/${primaryList.id}/tasks/${firstTask.id}") {
+        mockMvc.patch("$LISTS_BASE_PATH/${primaryList.id}/tasks/${firstTask.id}") {
             contentType = MediaType.APPLICATION_JSON
             content = payload
         }.andExpect {
@@ -355,7 +355,7 @@ abstract class TodoListControllerIT {
     fun `should return bad request when updating task with invalid status`() {
         val payload = """{"status":"INVALID_STATUS"}"""
 
-        mockMvc.patch("/v1/lists/${primaryList.id}/tasks/${firstTask.id}") {
+        mockMvc.patch("$LISTS_BASE_PATH/${primaryList.id}/tasks/${firstTask.id}") {
             contentType = MediaType.APPLICATION_JSON
             content = payload
         }.andExpect {
@@ -368,7 +368,7 @@ abstract class TodoListControllerIT {
     fun `should return bad request when updating task with negative position`() {
         val payload = """{"position":-1}"""
 
-        mockMvc.patch("/v1/lists/${primaryList.id}/tasks/${firstTask.id}") {
+        mockMvc.patch("$LISTS_BASE_PATH/${primaryList.id}/tasks/${firstTask.id}") {
             contentType = MediaType.APPLICATION_JSON
             content = payload
         }.andExpect {
@@ -381,7 +381,7 @@ abstract class TodoListControllerIT {
 
     @Test
     fun `should delete task`() {
-        mockMvc.delete("/v1/lists/${primaryList.id}/tasks/${firstTask.id}")
+        mockMvc.delete("$LISTS_BASE_PATH/${primaryList.id}/tasks/${firstTask.id}")
             .andExpect {
                 status { isNoContent() }
             }
@@ -397,7 +397,7 @@ abstract class TodoListControllerIT {
                 position = 1
             ).apply { userId = seedUserId })
 
-        mockMvc.delete("/v1/lists/${primaryList.id}")
+        mockMvc.delete("$LISTS_BASE_PATH/${primaryList.id}")
             .andExpect {
                 status { isNoContent() }
             }
@@ -411,7 +411,7 @@ abstract class TodoListControllerIT {
     fun `should return not found when deleting non-existent list`() {
         val listId = UUID.randomUUID()
 
-        mockMvc.delete("/v1/lists/$listId")
+        mockMvc.delete("$LISTS_BASE_PATH/$listId")
             .andExpect {
                 status { isNotFound() }
                 jsonPath("$.message") { value("Todo list $listId not found") }
@@ -422,7 +422,7 @@ abstract class TodoListControllerIT {
     fun `should return not found when deleting non-existent task`() {
         val taskId = UUID.randomUUID()
 
-        mockMvc.delete("/v1/lists/${primaryList.id}/tasks/$taskId")
+        mockMvc.delete("$LISTS_BASE_PATH/${primaryList.id}/tasks/$taskId")
             .andExpect {
                 status { isNotFound() }
                 jsonPath("$.message") { value("Task with id $taskId not found") }
@@ -439,7 +439,7 @@ abstract class TodoListControllerIT {
                 position = 0
             ).apply { userId = seedUserId })
 
-        mockMvc.delete("/v1/lists/${primaryList.id}/tasks/${otherTask.id}")
+        mockMvc.delete("$LISTS_BASE_PATH/${primaryList.id}/tasks/${otherTask.id}")
             .andExpect {
                 status { isNotFound() }
                 jsonPath("$.message") { value("Task with id ${otherTask.id} not found") }
@@ -467,7 +467,7 @@ abstract class TodoListControllerIT {
         // Move first task to position 2 (should shift others)
         val payload = """{"position":2}"""
 
-        mockMvc.patch("/v1/lists/${primaryList.id}/tasks/${firstTask.id}") {
+        mockMvc.patch("$LISTS_BASE_PATH/${primaryList.id}/tasks/${firstTask.id}") {
             contentType = MediaType.APPLICATION_JSON
             content = payload
         }.andExpect {
@@ -503,7 +503,7 @@ abstract class TodoListControllerIT {
         // Create task without position (should auto-assign)
         val payload = """{"title":"Task Auto Position"}"""
 
-        val result = mockMvc.post("/v1/lists/${primaryList.id}/tasks") {
+        val result = mockMvc.post("$LISTS_BASE_PATH/${primaryList.id}/tasks") {
             contentType = MediaType.APPLICATION_JSON
             content = payload
         }.andExpect {
@@ -520,7 +520,7 @@ abstract class TodoListControllerIT {
     fun `should handle empty lists gracefully`() {
         val emptyList = todoListRepository.save(TodoListEntity(name = "Lista Vazia").apply { userId = seedUserId })
 
-        val result = mockMvc.get("/v1/lists/${emptyList.id}")
+        val result = mockMvc.get("$LISTS_BASE_PATH/${emptyList.id}")
             .andExpect {
                 status { isOk() }
             }
@@ -541,7 +541,7 @@ abstract class TodoListControllerIT {
             "position": null
         }"""
 
-        mockMvc.patch("/v1/lists/${primaryList.id}/tasks/${firstTask.id}") {
+        mockMvc.patch("$LISTS_BASE_PATH/${primaryList.id}/tasks/${firstTask.id}") {
             contentType = MediaType.APPLICATION_JSON
             content = payload
         }.andExpect {

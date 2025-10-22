@@ -53,10 +53,10 @@ abstract class AuthControllerIT {
         Assertions.assertThat(registerToken).isNotBlank()
 
 
-        val unauthorized = mockMvc.get("/v1/lists").andReturn()
+        val unauthorized = mockMvc.get(LISTS_BASE_PATH).andReturn()
         Assertions.assertThat(unauthorized.response.status).isIn(401, 403)
 
-        mockMvc.get("/v1/lists") {
+        mockMvc.get(LISTS_BASE_PATH) {
             header("Authorization", "Bearer $registerToken")
         }.andExpect {
             status { isOk() }
@@ -75,7 +75,7 @@ abstract class AuthControllerIT {
 
         Assertions.assertThat(loginToken).isNotBlank()
 
-        mockMvc.get("/v1/lists") {
+        mockMvc.get(LISTS_BASE_PATH) {
             header("Authorization", "Bearer $loginToken")
         }.andExpect {
             status { isOk() }
