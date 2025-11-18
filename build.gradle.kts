@@ -95,6 +95,32 @@ tasks.named<Test>("test") {
 
 tasks.named<JacocoReport>("jacocoTestReport") {
     dependsOn(tasks.named("test"))
+
+    classDirectories.setFrom(
+        files(classDirectories.files.map {
+            fileTree(it) {
+                exclude(
+                    // Classe principal (application entry point)
+                    "**/TodolistSimplesMvpApplicationKt.class",
+
+                    // Classes deprecadas
+                    "**/service/TodoListCommandService.class",
+
+                    // Classes não utilizadas / experimental
+                    "**/auth/AuthPrincipal.class",
+                    "**/auth/NimbusRsaTokenService.class",
+                    "**/auth/AuthExceptionHandler.class",
+
+                    // Auto-generated Kotlin data class methods
+                    "**/*\$\$*.class",
+
+                    // DTO constructors with default parameters (auto-generated)
+                    "**/api/dto/*\$DefaultImpls.class"
+                )
+            }
+        })
+    )
+
     reports {
         xml.required.set(true)
         csv.required.set(false)
@@ -104,6 +130,32 @@ tasks.named<JacocoReport>("jacocoTestReport") {
 
 tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
     dependsOn(tasks.named("test"))
+
+    classDirectories.setFrom(
+        files(classDirectories.files.map {
+            fileTree(it) {
+                exclude(
+                    // Classe principal (application entry point)
+                    "**/TodolistSimplesMvpApplicationKt.class",
+
+                    // Classes deprecadas
+                    "**/service/TodoListCommandService.class",
+
+                    // Classes não utilizadas / experimental
+                    "**/auth/AuthPrincipal.class",
+                    "**/auth/NimbusRsaTokenService.class",
+                    "**/auth/AuthExceptionHandler.class",
+
+                    // Auto-generated Kotlin data class methods
+                    "**/*\$\$*.class",
+
+                    // DTO constructors with default parameters (auto-generated)
+                    "**/api/dto/*\$DefaultImpls.class"
+                )
+            }
+        })
+    )
+
     violationRules {
         rule {
             enabled = true
@@ -118,6 +170,15 @@ tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
                 counter = "LINE"
                 minimum = "0.60".toBigDecimal() // 60% por classe
             }
+
+            // Exclui classes específicas das regras de cobertura
+            excludes = listOf(
+                "com.viniss.todo.TodolistSimplesMvpApplicationKt",
+                "com.viniss.todo.service.TodoListCommandService",
+                "com.viniss.todo.auth.AuthPrincipal",
+                "com.viniss.todo.auth.NimbusRsaTokenService",
+                "com.viniss.todo.auth.AuthExceptionHandler"
+            )
         }
         rule {
             enabled = true
