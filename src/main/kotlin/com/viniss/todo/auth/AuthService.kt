@@ -12,7 +12,9 @@ class AuthService(
     private val encoder: PasswordEncoder,
     private val jwt: TokenService,
     private val passwordValidator: PasswordValidator,
-    private val passwordHistoryService: PasswordHistoryService
+    private val passwordHistoryService: PasswordHistoryService,
+    private val loginAttemptService: LoginAttemptService,
+    private val refreshTokenService: RefreshTokenService
 ) {
     private val logger = LoggerFactory.getLogger(AuthService::class.java)
 
@@ -34,8 +36,13 @@ class AuthService(
         // Record password in history
         passwordHistoryService.recordPasswordChange(user.id, passwordHash)
 
-        val token = jwt.generateToken(email = user.email, userId = user.id)
-        return AuthResponse(token)
+        val accessToken = jwt.generateToken(email = user.email, userId = user.id)
+        val refreshToken = refreshTokenService.createRefreshToken(user.id)
+
+        return AuthResponseWithRefresh(
+            accessToken = accessToken,
+            refreshToken = refreshToken
+        )
     }
 
 
