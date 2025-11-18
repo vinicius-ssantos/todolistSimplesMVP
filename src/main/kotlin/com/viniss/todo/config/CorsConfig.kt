@@ -21,7 +21,19 @@ data class CorsProps(
         "https://*.v0.dev"
     ),
     val allowedMethods: List<String> = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"),
-    val allowedHeaders: List<String> = listOf("*"),
+    // Specific headers instead of wildcard "*" for better security
+    val allowedHeaders: List<String> = listOf(
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Requested-With"
+    ),
+    // Expose only necessary headers to the frontend
+    val exposedHeaders: List<String> = listOf(
+        "Authorization",
+        "Content-Type"
+    ),
     val allowCredentials: Boolean = true,
     val maxAgeSeconds: Long = 3600
 )
@@ -42,6 +54,7 @@ class CorsConfig(
         }
         configuration.allowedMethods = corsProps.allowedMethods
         configuration.allowedHeaders = corsProps.allowedHeaders
+        configuration.exposedHeaders = corsProps.exposedHeaders
         configuration.allowCredentials = corsProps.allowCredentials
         configuration.maxAge = corsProps.maxAgeSeconds
 

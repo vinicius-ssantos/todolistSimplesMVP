@@ -11,33 +11,31 @@ class AuthService(
     private val repo: AppUserRepository,
     private val encoder: PasswordEncoder,
     private val jwt: TokenService,
-    private val loginAttemptService: LoginAttemptService,
-    private val emailVerificationService: EmailVerificationService,
-    private val refreshTokenService: RefreshTokenService
+    private val passwordValidator: PasswordValidator,
+    private val passwordHistoryService: PasswordHistoryService
 ) {
     private val logger = LoggerFactory.getLogger(AuthService::class.java)
 
     fun register(email: String, rawPassword: String): AuthResponseWithRefresh {
         require(email.isNotBlank()) { "email is required" }
-        require(rawPassword.length >= 6) { "password must have at least 6 chars" }
-        if (repo.existsByEmail(email)) {
-            logger.warn("Registration attempt with existing email: {}", email)
-            error("email already registered")
+
+        // Validate password strength and complexity
+        val validationResult = passwordValidator.validate(rawPassword)
+        if (!validationResult.isValid()) {
+            val errors = validationResult.errorList().joinToString("; ")
+            error("Password validation failed: $errors")
         }
 
-        val user = repo.save(AppUserEntity(email = email, passwordHash = encoder.encode(rawPassword)))
-        logger.info("User registered successfully: {}", email)
+        if (repo.existsByEmail(email)) error("email already registered")
 
-        // Send verification email
-        emailVerificationService.generateAndSendVerificationToken(user.id)
+        val passwordHash = encoder.encode(rawPassword)
+        val user = repo.save(AppUserEntity(email = email, passwordHash = passwordHash))
 
-        val accessToken = jwt.generateToken(email = user.email, userId = user.id)
-        val refreshToken = refreshTokenService.createRefreshToken(user.id)
+        // Record password in history
+        passwordHistoryService.recordPasswordChange(user.id, passwordHash)
 
-        return AuthResponseWithRefresh(
-            accessToken = accessToken,
-            refreshToken = refreshToken
-        )
+        val token = jwt.generateToken(email = user.email, userId = user.id)
+        return AuthResponse(token)
     }
 
 

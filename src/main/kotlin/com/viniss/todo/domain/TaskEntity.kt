@@ -34,11 +34,30 @@ class TaskEntity(
     var dueDate: LocalDate? = null,
 
     @Column(nullable = false)
-    var position: Int = 0
+    var position: Int = 0,
+
+    // Recurring task support
+    @Column(name = "is_recurring", nullable = false)
+    var isRecurring: Boolean = false,
+
+    @Column(name = "recurrence_pattern", columnDefinition = "TEXT")
+    var recurrencePatternJson: String? = null,
+
+    @Column(name = "parent_recurring_task_id")
+    var parentRecurringTaskId: UUID? = null // Link to the parent recurring task
 ) : BaseAudit() {
 
     @Column(name = "user_id", nullable = false)
     lateinit var userId: UUID
+
+    // Many-to-many relationship with tags
+    @ManyToMany(fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.MERGE])
+    @JoinTable(
+        name = "task_tag",
+        joinColumns = [JoinColumn(name = "task_id")],
+        inverseJoinColumns = [JoinColumn(name = "tag_id")]
+    )
+    var tags: MutableSet<TagEntity> = mutableSetOf()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
