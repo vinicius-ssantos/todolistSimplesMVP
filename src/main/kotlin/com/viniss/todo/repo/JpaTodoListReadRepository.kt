@@ -20,6 +20,27 @@ class JpaTodoListReadRepository(
         todoListRepository.findAllWithTasksOrderedByUser(currentUser.id())
             .map(entityMappers::mapToView)
 
+    override fun findAllWithTasksOrdered(pageable: org.springframework.data.domain.Pageable): org.springframework.data.domain.Page<TodoListView> {
+        val userId = currentUser.id()
+
+        // First, get paginated IDs
+        val idsPage = todoListRepository.findIdsByUser(userId, pageable)
+
+        // If no results, return empty page
+        if (idsPage.isEmpty) {
+            return org.springframework.data.domain.PageImpl(emptyList(), pageable, 0)
+        }
+
+        // Then fetch full entities with tasks for those IDs
+        val entities = todoListRepository.findByIdsWithTasks(idsPage.content, userId)
+
+        // Map to views maintaining the order
+        val viewsMap = entities.map(entityMappers::mapToView).associateBy { it.id }
+        val orderedViews = idsPage.content.mapNotNull { viewsMap[it] }
+
+        return org.springframework.data.domain.PageImpl(orderedViews, pageable, idsPage.totalElements)
+    }
+
     override fun findByIdWithTasks(listId: UUID): TodoListView? =
         todoListRepository.findByIdWithTasksAndUser(listId, currentUser.id())?.let(entityMappers::mapToView)
 
