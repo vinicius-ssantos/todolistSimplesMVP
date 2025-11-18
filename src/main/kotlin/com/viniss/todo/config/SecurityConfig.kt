@@ -33,6 +33,30 @@ class SecurityConfig(
     fun filterChain(http: HttpSecurity): SecurityFilterChain = http
         .cors { }
         .csrf { it.disable() }
+        .headers { headers ->
+            headers
+                // HSTS: Force HTTPS for 1 year, include subdomains
+                .httpStrictTransportSecurity { hsts ->
+                    hsts.includeSubDomains(true)
+                        .maxAgeInSeconds(31536000)
+                }
+                // Prevent MIME-sniffing attacks
+                .contentTypeOptions { }
+                // Prevent clickjacking attacks
+                .frameOptions { frame ->
+                    frame.deny()
+                }
+                // XSS Protection (legacy browsers) - enabled by default
+                .xssProtection { }
+                // Referrer Policy
+                .referrerPolicy { referrer ->
+                    referrer.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                }
+                // Permissions Policy (formerly Feature Policy)
+                .permissionsPolicy { permissions ->
+                    permissions.policy("geolocation=(), microphone=(), camera=()")
+                }
+        }
         .exceptionHandling { it.authenticationEntryPoint(authenticationEntryPoint) }
         .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
         .authorizeHttpRequests {

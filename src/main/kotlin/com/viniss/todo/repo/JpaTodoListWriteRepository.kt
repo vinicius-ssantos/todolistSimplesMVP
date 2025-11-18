@@ -4,6 +4,7 @@ import com.viniss.todo.auth.CurrentUser
 import com.viniss.todo.domain.TaskEntity
 import com.viniss.todo.domain.TodoListEntity
 import com.viniss.todo.repo.mapper.EntityMappers
+import com.viniss.todo.service.domain.TaskPositionManager
 import com.viniss.todo.service.exception.TodoListNotFoundException
 import com.viniss.todo.service.exception.TaskNotFoundException
 import com.viniss.todo.service.model.TaskCreationData
@@ -19,7 +20,8 @@ class JpaTodoListWriteRepository(
     private val todoListRepository: TodoListRepository,
     private val taskRepository: TaskRepository,
     private val entityMappers: EntityMappers,
-    private val currentUser: CurrentUser
+    private val currentUser: CurrentUser,
+    private val taskPositionManager: TaskPositionManager
 ) : TodoListWriteRepository {
 
     override fun createList(name: String): TodoListView {
@@ -81,7 +83,8 @@ class JpaTodoListWriteRepository(
                 "position" -> if (value != null) {
                     val newPosition = value as Int
                     if (newPosition != task.position) {
-                        reorganizeTaskPositions(list, task, newPosition)
+                        // Delega reorganização para o serviço de domínio
+                        taskPositionManager.reorganizePositions(list, task, newPosition)
                         task.position = newPosition
                     }
                 }
@@ -89,34 +92,6 @@ class JpaTodoListWriteRepository(
         }
 
         return entityMappers.mapToView(taskRepository.save(task))
-    }
-    
-    private fun reorganizeTaskPositions(list: TodoListEntity, movedTask: TaskEntity, newPosition: Int) {
-        val allTasks = taskRepository.findByListIdOrderByPositionAsc(list.id)
-        val oldPosition = movedTask.position
-        
-        allTasks.forEach { task ->
-            when {
-                task.id == movedTask.id -> {
-                    // Skip the moved task itself
-                }
-                oldPosition < newPosition -> {
-                    // Moving task down: shift tasks between old and new position up
-                    if (task.position > oldPosition && task.position <= newPosition) {
-                        task.position--
-                    }
-                }
-                oldPosition > newPosition -> {
-                    // Moving task up: shift tasks between new and old position down
-                    if (task.position >= newPosition && task.position < oldPosition) {
-                        task.position++
-                    }
-                }
-            }
-        }
-        
-        // Save all affected tasks
-        taskRepository.saveAll(allTasks.filter { it.id != movedTask.id })
     }
 
     @Transactional

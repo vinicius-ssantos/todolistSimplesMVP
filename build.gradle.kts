@@ -1,11 +1,11 @@
 plugins {
-    kotlin("jvm") version "1.9.25"
-    kotlin("plugin.spring") version "1.9.25"
+    kotlin("jvm") version "2.2.21"
+    kotlin("plugin.spring") version "2.2.21"
 
     id("org.springframework.boot") version "3.4.10"
     id("io.spring.dependency-management") version "1.1.7"
 
-    kotlin("plugin.jpa") version "1.9.25" // ativa no-arg + all-open para JPA
+    kotlin("plugin.jpa") version "2.2.21" // ativa no-arg + all-open para JPA
     jacoco
 }
 
@@ -44,7 +44,7 @@ dependencies {
     // Testes
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("io.mockk:mockk:1.13.13")
+    testImplementation("io.mockk:mockk:1.14.6")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.testcontainers:junit-jupiter")
@@ -56,7 +56,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.security:spring-security-crypto")
     implementation("org.springframework.security:spring-security-oauth2-jose") // <-- traz nimbus-jose-jwt transitivamente
-    implementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.6")
 
 
 
@@ -65,9 +65,12 @@ dependencies {
 
 
 // JWT (jjwt 0.12.x)
-    implementation("io.jsonwebtoken:jjwt-api:0.12.5")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
+    implementation("io.jsonwebtoken:jjwt-api:0.13.0")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.13.0")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.13.0")
+
+    // Rate Limiting (Bucket4j)
+    implementation("com.bucket4j:bucket4j-core:8.10.1")
 }
 
 kotlin {
@@ -95,9 +98,124 @@ tasks.named<Test>("test") {
 
 tasks.named<JacocoReport>("jacocoTestReport") {
     dependsOn(tasks.named("test"))
+
+    classDirectories.setFrom(
+        files(classDirectories.files.map {
+            fileTree(it) {
+                exclude(
+                    // Classe principal (application entry point)
+                    "**/TodolistSimplesMvpApplicationKt.class",
+
+                    // Classes deprecadas
+                    "**/service/TodoListCommandService.class",
+
+                    // Classes não utilizadas / experimental
+                    "**/auth/AuthPrincipal.class",
+                    "**/auth/NimbusRsaTokenService.class",
+                    "**/auth/AuthExceptionHandler.class",
+
+                    // Auto-generated Kotlin data class methods
+                    "**/*\$\$*.class",
+
+                    // DTO constructors with default parameters (auto-generated)
+                    "**/api/dto/*\$DefaultImpls.class"
+                )
+            }
+        })
+    )
+
     reports {
         xml.required.set(true)
         csv.required.set(false)
         html.required.set(true)
     }
+}
+
+tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
+    dependsOn(tasks.named("test"))
+
+    classDirectories.setFrom(
+        files(classDirectories.files.map {
+            fileTree(it) {
+                exclude(
+                    // Classe principal (application entry point)
+                    "**/TodolistSimplesMvpApplicationKt.class",
+
+                    // Classes deprecadas
+                    "**/service/TodoListCommandService.class",
+
+                    // Classes não utilizadas / experimental
+                    "**/auth/AuthPrincipal.class",
+                    "**/auth/NimbusRsaTokenService.class",
+                    "**/auth/AuthExceptionHandler.class",
+
+                    // Auto-generated Kotlin data class methods
+                    "**/*\$\$*.class",
+
+                    // DTO constructors with default parameters (auto-generated)
+                    "**/api/dto/*\$DefaultImpls.class"
+                )
+            }
+        })
+    )
+
+    violationRules {
+        rule {
+            enabled = true
+            limit {
+                minimum = "0.70".toBigDecimal() // 70% de cobertura mínima
+            }
+        }
+        rule {
+            enabled = true
+            element = "CLASS"
+            limit {
+                counter = "LINE"
+                minimum = "0.60".toBigDecimal() // 60% por classe
+            }
+
+            // Exclui classes específicas das regras de cobertura
+            excludes = listOf(
+                "com.viniss.todo.TodolistSimplesMvpApplicationKt",
+                "com.viniss.todo.service.TodoListCommandService",
+                "com.viniss.todo.auth.AuthPrincipal",
+                "com.viniss.todo.auth.NimbusRsaTokenService",
+                "com.viniss.todo.auth.AuthExceptionHandler"
+            )
+        }
+        rule {
+            enabled = true
+            element = "METHOD"
+            limit {
+                counter = "LINE"
+                minimum = "0.50".toBigDecimal() // 50% por método
+            }
+
+            // Exclui métodos auto-gerados
+            excludes = listOf(
+                // Entity getters/setters
+                "*.getUserId()",
+                "*.setUserId(*)",
+                "*.getCreatedAt()",
+                "*.setCreatedAt(*)",
+                "*.getUpdatedAt()",
+                "*.setUpdatedAt(*)",
+                "*.getTasks()",
+                "*.setTasks(*)",
+                "*.getEmail()",
+
+                // equals/hashCode
+                "*.equals(*)",
+                "*.hashCode()",
+
+                // Kotlin default constructors
+                "*.*(*DefaultConstructorMarker)"
+            )
+        }
+    }
+}
+
+// Adiciona verificação de cobertura ao check
+tasks.named("check") {
+    dependsOn(tasks.named("jacocoTestCoverageVerification"))
 }

@@ -1,6 +1,8 @@
 package com.viniss.todo.repo
 
 import com.viniss.todo.domain.TodoListEntity
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -32,6 +34,22 @@ interface TodoListRepository : JpaRepository<TodoListEntity, UUID> {
         order by list.createdAt asc, tasks.position asc
     """)
     fun findAllWithTasksOrderedByUser(userId: UUID): List<TodoListEntity>
+
+    // Query for pagination - IDs only (no join fetch to avoid pagination issues)
+    @Query("""
+        select distinct list.id from TodoListEntity list
+        where list.userId = :userId
+    """)
+    fun findIdsByUser(userId: UUID, pageable: Pageable): Page<UUID>
+
+    // Fetch full entities with tasks for given IDs
+    @Query("""
+        select distinct list from TodoListEntity list
+        left join fetch list.tasks tasks
+        where list.id in :ids and list.userId = :userId
+        order by list.createdAt asc, tasks.position asc
+    """)
+    fun findByIdsWithTasks(ids: List<UUID>, userId: UUID): List<TodoListEntity>
 
     @Query("""
         select list from TodoListEntity list
