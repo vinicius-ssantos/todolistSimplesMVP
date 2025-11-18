@@ -16,41 +16,13 @@ class ValidationExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationErrors(
         ex: MethodArgumentNotValidException
-    ): ResponseEntity<ValidationErrorResponse> {
-        val errors = ex.bindingResult.fieldErrors.map { error ->
-            FieldValidationError(
-                field = error.field,
-                message = error.defaultMessage ?: "Erro de validação",
-                rejectedValue = error.rejectedValue
-            )
-        }
-
-        val response = ValidationErrorResponse(
-            code = "VALIDATION_ERROR",
-            message = "Erros de validação encontrados",
-            errors = errors
-        )
+    ): ResponseEntity<ApiErrorResponse> {
+        // Return the first validation error message for simplicity
+        val firstError = ex.bindingResult.fieldErrors.firstOrNull()
+        val message = firstError?.defaultMessage ?: "Validation error"
 
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
-            .body(response)
+            .body(ApiErrorResponse(message = message))
     }
 }
-
-/**
- * Response padronizado para erros de validação.
- */
-data class ValidationErrorResponse(
-    val code: String,
-    val message: String,
-    val errors: List<FieldValidationError>
-)
-
-/**
- * Detalhes de um erro de validação em um campo específico.
- */
-data class FieldValidationError(
-    val field: String,
-    val message: String,
-    val rejectedValue: Any?
-)
