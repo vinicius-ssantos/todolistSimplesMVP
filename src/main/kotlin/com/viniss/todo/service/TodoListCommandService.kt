@@ -20,7 +20,6 @@ import com.viniss.todo.service.port.UpdateTodoListUseCase
 import com.viniss.todo.service.port.TodoListReadRepository
 import com.viniss.todo.service.port.TodoListWriteRepository
 import java.util.UUID
-import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -33,14 +32,15 @@ import org.springframework.transaction.annotation.Transactional
  * - [com.viniss.todo.service.task.UpdateTaskService]
  * - [com.viniss.todo.service.task.DeleteTaskService]
  *
- * Este serviço será removido em versões futuras.
+ * Este serviço não é mais registrado como bean do Spring.
+ * Será removido em versões futuras.
  */
 @Deprecated(
     message = "Use os serviços específicos de list/ e task/ ao invés deste serviço monolítico",
     replaceWith = ReplaceWith("CreateTodoListService, UpdateTodoListService, etc."),
     level = DeprecationLevel.WARNING
 )
-@Service
+// @Service - Removido para evitar conflito com novos serviços @Primary
 class TodoListCommandService(
     private val todoListWriteRepository: TodoListWriteRepository,
     private val todoListReadRepository: TodoListReadRepository
