@@ -3,13 +3,11 @@ package com.viniss.todo.api.dto
 import com.viniss.todo.domain.Priority
 import com.viniss.todo.domain.Status
 import jakarta.validation.constraints.Min
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import java.time.LocalDate
 
 data class UpdateTaskRequest(
-    @field:NotBlank(message = "Task title must not be blank")
-    @field:Size(min = 1, max = 200, message = "Task title must be between 1 and 200 characters")
+    @field:Size(min = 1, max = 200, message = "Task title must not be blank")
     val title: String? = null,
 
     @field:Size(max = 1000, message = "Notes cannot exceed 1000 characters")
