@@ -25,7 +25,7 @@ sealed class PasswordValidationResult {
     data class Invalid(val errors: List<String>) : PasswordValidationResult()
 
     fun isValid(): Boolean = this is Valid
-    fun getErrors(): List<String> = when (this) {
+    fun errorList(): List<String> = when (this) {
         is Invalid -> errors
         is Valid -> emptyList()
     }

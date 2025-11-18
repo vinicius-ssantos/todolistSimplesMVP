@@ -19,7 +19,7 @@ class AuthService(
         // Validate password strength and complexity
         val validationResult = passwordValidator.validate(rawPassword)
         if (!validationResult.isValid()) {
-            val errors = validationResult.getErrors().joinToString("; ")
+            val errors = validationResult.errorList().joinToString("; ")
             error("Password validation failed: $errors")
         }
 
