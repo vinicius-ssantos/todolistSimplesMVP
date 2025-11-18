@@ -1,6 +1,7 @@
 package com.viniss.todo.auth
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import java.util.*
 
@@ -29,17 +30,21 @@ interface PasswordHistoryRepository : JpaRepository<PasswordHistoryEntity, UUID>
      * @param userId The user ID
      * @param keepCount Number of most recent entries to keep
      */
+    @Modifying
     @Query(
-        """
-        DELETE FROM PasswordHistoryEntity ph
-        WHERE ph.userId = :userId
-        AND ph.id NOT IN (
-            SELECT ph2.id FROM PasswordHistoryEntity ph2
-            WHERE ph2.userId = :userId
-            ORDER BY ph2.createdAt DESC
-            LIMIT :keepCount
+        value = """
+        DELETE FROM password_history
+        WHERE user_id = :userId
+        AND id NOT IN (
+            SELECT id FROM (
+                SELECT id FROM password_history
+                WHERE user_id = :userId
+                ORDER BY created_at DESC
+                LIMIT :keepCount
+            ) AS keep_ids
         )
-        """
+        """,
+        nativeQuery = true
     )
     fun deleteOldEntries(userId: UUID, keepCount: Int)
 }

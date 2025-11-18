@@ -18,7 +18,7 @@ import java.util.*
 data class PasswordHistoryEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    val id: UUID = UUID.randomUUID(),
+    val id: UUID? = null,
 
     @Column(name = "user_id", nullable = false)
     val userId: UUID,

@@ -78,11 +78,7 @@ class PasswordHistoryService(
      * @param keepCount Number of most recent entries to keep
      */
     private fun cleanupOldEntries(userId: UUID, keepCount: Int) {
-        val allEntries = repository.findRecentByUserId(userId, Int.MAX_VALUE)
-        if (allEntries.size > keepCount) {
-            val entriesToDelete = allEntries.drop(keepCount)
-            repository.deleteAll(entriesToDelete)
-        }
+        repository.deleteOldEntries(userId, keepCount)
     }
 
     /**
