@@ -101,3 +101,36 @@ tasks.named<JacocoReport>("jacocoTestReport") {
         html.required.set(true)
     }
 }
+
+tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
+    dependsOn(tasks.named("test"))
+    violationRules {
+        rule {
+            enabled = true
+            limit {
+                minimum = "0.70".toBigDecimal() // 70% de cobertura mínima
+            }
+        }
+        rule {
+            enabled = true
+            element = "CLASS"
+            limit {
+                counter = "LINE"
+                minimum = "0.60".toBigDecimal() // 60% por classe
+            }
+        }
+        rule {
+            enabled = true
+            element = "METHOD"
+            limit {
+                counter = "LINE"
+                minimum = "0.50".toBigDecimal() // 50% por método
+            }
+        }
+    }
+}
+
+// Adiciona verificação de cobertura ao check
+tasks.named("check") {
+    dependsOn(tasks.named("jacocoTestCoverageVerification"))
+}

@@ -4,8 +4,10 @@ import com.viniss.todo.api.dto.*
 import com.viniss.todo.api.mapper.RequestMapper.toCommand
 import com.viniss.todo.api.mapper.ResponseMapper.toResponse
 import com.viniss.todo.service.port.*
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import java.util.*
 
@@ -31,20 +33,20 @@ class TodoListController(
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun createList(@RequestBody request: CreateTodoListRequest): TodoListResponse =
+    fun createList(@Valid @RequestBody request: CreateTodoListRequest): TodoListResponse =
         createTodoListUseCase.create(request.toCommand()).toResponse()
 
     @PostMapping("/{listId}/tasks")
     @ResponseStatus(HttpStatus.CREATED)
     fun createTask(
         @PathVariable listId: UUID,
-        @RequestBody request: CreateTaskRequest
+        @Valid @RequestBody request: CreateTaskRequest
     ): TaskResponse =
         createTaskUseCase.create(listId, request.toCommand()).toResponse()
 
     @PatchMapping("/{listId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun updateList(@PathVariable listId: UUID, @RequestBody body: UpdateTodoListRequest): ResponseEntity<Void> {
+    fun updateList(@PathVariable listId: UUID, @Valid @RequestBody body: UpdateTodoListRequest): ResponseEntity<Void> {
         updateTodoListUseCase.update(listId, body.toCommand())
         return ResponseEntity.noContent().build()
     }
@@ -54,7 +56,7 @@ class TodoListController(
     fun updateTask(
         @PathVariable listId: UUID,
         @PathVariable taskId: UUID,
-        @RequestBody request: UpdateTaskRequest
+        @Valid @RequestBody request: UpdateTaskRequest
     ): ResponseEntity<Void> {
         updateTaskUseCase.update(listId, taskId, request.toCommand())
         return ResponseEntity.noContent().build()
