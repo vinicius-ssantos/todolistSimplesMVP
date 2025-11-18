@@ -6,7 +6,8 @@ COPY gradlew gradlew.bat build.gradle.kts settings.gradle.kts gradle.properties 
 COPY gradle gradle
 COPY src src
 RUN chmod +x gradlew
-RUN ./gradlew bootJar --no-daemon
+# bootJar sem rodar tests/checks (build Docker mais rápido)
+RUN ./gradlew bootJar -x test -x check --no-daemon
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
