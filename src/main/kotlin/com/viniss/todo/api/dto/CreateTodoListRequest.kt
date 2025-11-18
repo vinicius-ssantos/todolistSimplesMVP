@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
 data class CreateTodoListRequest(
-    @field:NotBlank(message = "Nome da lista é obrigatório")
-    @field:Size(min = 1, max = 100, message = "Nome da lista deve ter entre 1 e 100 caracteres")
+    @field:NotBlank(message = "Todo list name must not be blank")
+    @field:Size(min = 1, max = 100, message = "Todo list name must be between 1 and 100 characters")
     val name: String
 )

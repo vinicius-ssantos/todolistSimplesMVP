@@ -7,16 +7,16 @@ import jakarta.validation.constraints.Size
 import java.time.LocalDate
 
 data class UpdateTaskRequest(
-    @field:Size(min = 1, max = 200, message = "Título da tarefa deve ter entre 1 e 200 caracteres")
+    @field:Size(min = 1, max = 200, message = "Task title must not be blank")
     val title: String? = null,
 
-    @field:Size(max = 1000, message = "Notas não podem exceder 1000 caracteres")
+    @field:Size(max = 1000, message = "Notes cannot exceed 1000 characters")
     val notes: String? = null,
 
     val priority: Priority? = null,
     val status: Status? = null,
     val dueDate: LocalDate? = null,
 
-    @field:Min(value = 0, message = "Posição não pode ser negativa")
+    @field:Min(value = 0, message = "Task position must be zero or positive")
     val position: Int? = null
 )
