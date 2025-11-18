@@ -1,27 +1,18 @@
 package com.viniss.todo.auth
 
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
 import java.util.*
 
 interface PasswordHistoryRepository : JpaRepository<PasswordHistoryEntity, UUID> {
 
     /**
-     * Find the most recent N password hashes for a user.
+     * Find password history entries for a user ordered by creation date (newest first).
      *
      * @param userId The user ID
-     * @param limit Maximum number of records to return
+     * @param pageable Pagination information (use PageRequest.of(0, limit) to limit results)
      * @return List of password history entries ordered by creation date (newest first)
      */
-    @Query(
-        value = """
-        SELECT * FROM password_history
-        WHERE user_id = :userId
-        ORDER BY created_at DESC
-        LIMIT :limit
-        """,
-        nativeQuery = true
-    )
-    fun findRecentByUserId(userId: UUID, limit: Int): List<PasswordHistoryEntity>
+    fun findByUserIdOrderByCreatedAtDesc(userId: UUID, pageable: Pageable): List<PasswordHistoryEntity>
 
 }
