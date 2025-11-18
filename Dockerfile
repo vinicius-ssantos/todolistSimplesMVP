@@ -9,7 +9,7 @@ RUN chmod +x gradlew
 # bootJar sem rodar tests/checks (build Docker mais rápido)
 RUN ./gradlew bootJar -x test -x check --no-daemon
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 COPY --from=build /workspace/build/libs/*.jar app.jar
 ENV SPRING_PROFILES_ACTIVE=prod
