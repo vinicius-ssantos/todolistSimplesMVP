@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM gradle:8.11-jdk21 AS build
+FROM gradle:9.2-jdk21 AS build
 WORKDIR /workspace
 COPY gradlew gradlew.bat build.gradle.kts settings.gradle.kts gradle.properties ./
 COPY gradle gradle
