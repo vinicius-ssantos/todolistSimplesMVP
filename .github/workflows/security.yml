@@ -64,9 +64,11 @@ jobs:
         with:
           project: 'todolistSimplesMVP'
           path: '.'
-          format: 'HTML,JSON,SARIF'
+          format: 'HTML'
           out: 'reports'
           args: >
+            --format JSON
+            --format SARIF
             --enableRetired
             --enableExperimental
             --failOnCVSS 7
