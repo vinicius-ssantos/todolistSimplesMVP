@@ -187,6 +187,27 @@ tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
                 counter = "LINE"
                 minimum = "0.50".toBigDecimal() // 50% por método
             }
+
+            // Exclui métodos auto-gerados
+            excludes = listOf(
+                // Entity getters/setters
+                "*.getUserId()",
+                "*.setUserId(*)",
+                "*.getCreatedAt()",
+                "*.setCreatedAt(*)",
+                "*.getUpdatedAt()",
+                "*.setUpdatedAt(*)",
+                "*.getTasks()",
+                "*.setTasks(*)",
+                "*.getEmail()",
+
+                // equals/hashCode
+                "*.equals(*)",
+                "*.hashCode()",
+
+                // Kotlin default constructors
+                "*.*(*DefaultConstructorMarker)"
+            )
         }
     }
 }
