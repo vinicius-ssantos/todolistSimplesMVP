@@ -46,10 +46,8 @@ class SecurityConfig(
                 .frameOptions { frame ->
                     frame.deny()
                 }
-                // XSS Protection (legacy browsers)
-                .xssProtection { xss ->
-                    xss.headerValue("1; mode=block")
-                }
+                // XSS Protection (legacy browsers) - enabled by default
+                .xssProtection { }
                 // Referrer Policy
                 .referrerPolicy { referrer ->
                     referrer.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
