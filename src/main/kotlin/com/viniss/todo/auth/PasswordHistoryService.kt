@@ -2,6 +2,7 @@ package com.viniss.todo.auth
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.data.domain.PageRequest
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -40,7 +41,8 @@ class PasswordHistoryService(
             return false
         }
 
-        val recentPasswords = repository.findRecentByUserId(userId, props.preventReuseCount)
+        val pageable = PageRequest.of(0, props.preventReuseCount)
+        val recentPasswords = repository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
 
         return recentPasswords.any { history ->
             encoder.matches(rawPassword, history.passwordHash)
@@ -78,7 +80,8 @@ class PasswordHistoryService(
      * @param keepCount Number of most recent entries to keep
      */
     private fun cleanupOldEntries(userId: UUID, keepCount: Int) {
-        val allEntries = repository.findRecentByUserId(userId, Int.MAX_VALUE)
+        val pageable = PageRequest.of(0, Int.MAX_VALUE)
+        val allEntries = repository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
         if (allEntries.size > keepCount) {
             val entriesToDelete = allEntries.drop(keepCount)
             repository.deleteAll(entriesToDelete)
