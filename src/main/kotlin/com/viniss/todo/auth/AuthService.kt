@@ -9,15 +9,28 @@ import org.springframework.stereotype.Service
 class AuthService(
     private val repo: AppUserRepository,
     private val encoder: PasswordEncoder,
-    private val jwt: TokenService
+    private val jwt: TokenService,
+    private val passwordValidator: PasswordValidator,
+    private val passwordHistoryService: PasswordHistoryService
 ) {
     fun register(email: String, rawPassword: String): AuthResponse {
         require(email.isNotBlank()) { "email is required" }
-        require(rawPassword.length >= 6) { "password must have at least 6 chars" }
+
+        // Validate password strength and complexity
+        val validationResult = passwordValidator.validate(rawPassword)
+        if (!validationResult.isValid()) {
+            val errors = validationResult.getErrors().joinToString("; ")
+            error("Password validation failed: $errors")
+        }
+
         if (repo.existsByEmail(email)) error("email already registered")
 
+        val passwordHash = encoder.encode(rawPassword)
+        val user = repo.save(AppUserEntity(email = email, passwordHash = passwordHash))
 
-        val user = repo.save(AppUserEntity(email = email, passwordHash = encoder.encode(rawPassword)))
+        // Record password in history
+        passwordHistoryService.recordPasswordChange(user.id, passwordHash)
+
         val token = jwt.generateToken(email = user.email, userId = user.id)
         return AuthResponse(token)
     }
