@@ -28,8 +28,8 @@ abstract class P0AuthorizationIT {
 
     @BeforeEach
     fun setUp() {
-        tokenA = register("a${rand()}@ex.com", "secret123")
-        tokenB = register("b${rand()}@ex.com", "secret123")
+        tokenA = register("a${rand()}@ex.com", "SecureP@ss2024")
+        tokenB = register("b${rand()}@ex.com", "SecureP@ss2024")
         listId = createList(tokenA, name = "Lista A")
         taskId = createTask(tokenA, listId, title = "Task A1")
     }
@@ -113,7 +113,7 @@ abstract class P0AuthorizationIT {
             .andReturn()
 
         val json = mapper.readTree(mvcRes.response.contentAsString)
-        return json["token"].asText()
+        return json["accessToken"].asText()
     }
 
     private fun createList(token: String, name: String): UUID {

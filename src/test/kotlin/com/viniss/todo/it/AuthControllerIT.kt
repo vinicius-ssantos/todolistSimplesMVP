@@ -2,7 +2,7 @@ package com.viniss.todo.it
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.viniss.todo.auth.AppUserRepository
-import com.viniss.todo.auth.AuthResponse
+import com.viniss.todo.auth.AuthResponseWithRefresh
 import com.viniss.todo.repo.TaskRepository
 import com.viniss.todo.repo.TodoListRepository
 import org.assertj.core.api.Assertions
@@ -37,7 +37,7 @@ abstract class AuthControllerIT {
     @Test
     fun `user can register, login and access protected endpoints`() {
         val email = "test-${UUID.randomUUID()}@example.com"
-        val password = "secret123"
+        val password = "SecureP@ss2024"
 
         val registerResponse = mockMvc.post("/api/auth/register") {
             contentType = MediaType.APPLICATION_JSON
@@ -47,8 +47,8 @@ abstract class AuthControllerIT {
         }.andReturn()
 
         val registerToken = objectMapper
-            .readValue(registerResponse.response.contentAsString, AuthResponse::class.java)
-            .token
+            .readValue(registerResponse.response.contentAsString, AuthResponseWithRefresh::class.java)
+            .accessToken
 
         Assertions.assertThat(registerToken).isNotBlank()
 
@@ -70,8 +70,8 @@ abstract class AuthControllerIT {
         }.andReturn()
 
         val loginToken = objectMapper
-            .readValue(loginResponse.response.contentAsString, AuthResponse::class.java)
-            .token
+            .readValue(loginResponse.response.contentAsString, AuthResponseWithRefresh::class.java)
+            .accessToken
 
         Assertions.assertThat(loginToken).isNotBlank()
 
