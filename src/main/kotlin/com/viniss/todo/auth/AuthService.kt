@@ -11,11 +11,13 @@ class AuthService(
     private val repo: AppUserRepository,
     private val encoder: PasswordEncoder,
     private val jwt: TokenService,
-    private val loginAttemptService: LoginAttemptService
+    private val loginAttemptService: LoginAttemptService,
+    private val emailVerificationService: EmailVerificationService,
+    private val refreshTokenService: RefreshTokenService
 ) {
     private val logger = LoggerFactory.getLogger(AuthService::class.java)
 
-    fun register(email: String, rawPassword: String): AuthResponse {
+    fun register(email: String, rawPassword: String): AuthResponseWithRefresh {
         require(email.isNotBlank()) { "email is required" }
         require(rawPassword.length >= 6) { "password must have at least 6 chars" }
         if (repo.existsByEmail(email)) {
@@ -26,12 +28,20 @@ class AuthService(
         val user = repo.save(AppUserEntity(email = email, passwordHash = encoder.encode(rawPassword)))
         logger.info("User registered successfully: {}", email)
 
-        val token = jwt.generateToken(email = user.email, userId = user.id)
-        return AuthResponse(token)
+        // Send verification email
+        emailVerificationService.generateAndSendVerificationToken(user.id)
+
+        val accessToken = jwt.generateToken(email = user.email, userId = user.id)
+        val refreshToken = refreshTokenService.createRefreshToken(user.id)
+
+        return AuthResponseWithRefresh(
+            accessToken = accessToken,
+            refreshToken = refreshToken
+        )
     }
 
 
-    fun login(email: String, rawPassword: String): AuthResponse {
+    fun login(email: String, rawPassword: String): AuthResponseWithRefresh {
         // Check if account is locked
         if (loginAttemptService.isBlocked(email)) {
             logger.warn("Login attempt for blocked account: {}", email)
@@ -47,11 +57,55 @@ class AuthService(
             error("invalid credentials")
         }
 
+        // Check email verification (warning only, doesn't block login)
+        if (!user.emailVerified) {
+            logger.warn("User logged in with unverified email: {}", email)
+        }
+
         // Successful login - reset failed attempts
         loginAttemptService.resetFailedAttempts(email)
         logger.info("User logged in successfully: {}", email)
 
-        val token = jwt.generateToken(email = user.email, userId = user.id)
-        return AuthResponse(token)
+        val accessToken = jwt.generateToken(email = user.email, userId = user.id)
+        val refreshToken = refreshTokenService.createRefreshToken(user.id)
+
+        return AuthResponseWithRefresh(
+            accessToken = accessToken,
+            refreshToken = refreshToken
+        )
+    }
+
+    fun refreshAccessToken(refreshToken: String): AuthResponseWithRefresh {
+        val userId = refreshTokenService.validateAndGetUserId(refreshToken)
+            ?: run {
+                logger.warn("Invalid or expired refresh token")
+                error("Invalid refresh token")
+            }
+
+        val user = repo.findById(userId)
+            .orElseThrow { error("User not found") }
+
+        val newAccessToken = jwt.generateToken(email = user.email, userId = user.id)
+        val newRefreshToken = refreshTokenService.createRefreshToken(user.id)
+
+        // Revoke old refresh token
+        refreshTokenService.revokeToken(refreshToken)
+
+        logger.info("Access token refreshed for user: ${user.email}")
+
+        return AuthResponseWithRefresh(
+            accessToken = newAccessToken,
+            refreshToken = newRefreshToken
+        )
+    }
+
+    fun logout(userId: java.util.UUID, accessToken: String) {
+        // Blacklist current access token
+        // Note: TokenBlacklistService will be injected when integrated with JwtAuthFilter
+
+        // Revoke all refresh tokens for user
+        refreshTokenService.revokeAllUserTokens(userId)
+
+        logger.info("User logged out: $userId")
     }
 }

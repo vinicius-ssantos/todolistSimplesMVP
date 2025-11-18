@@ -13,7 +13,8 @@ import org.springframework.web.filter.OncePerRequestFilter
 @Component
 class JwtAuthFilter(
     private val jwt: TokenService,
-    private val entryPoint: JsonAuthEntryPoint
+    private val entryPoint: JsonAuthEntryPoint,
+    private val tokenBlacklistService: TokenBlacklistService
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(req: HttpServletRequest, res: HttpServletResponse, chain: FilterChain) {
@@ -22,6 +23,12 @@ class JwtAuthFilter(
         if (!auth.isNullOrBlank() && auth.startsWith("Bearer ", ignoreCase = true)) {
             val token = auth.substring(7).trim()
             try {
+                // Check if token is blacklisted first
+                if (tokenBlacklistService.isBlacklisted(token)) {
+                    entryPoint.commence(req, res, BadCredentialsException("token_revoked"))
+                    return
+                }
+
                 if (jwt.isValid(token)) {
                     val userId = jwt.extractUserId(token)      // sub -> UUID
                     val email = jwt.extractEmail(token)        // claim "email"
