@@ -14,12 +14,13 @@ interface PasswordHistoryRepository : JpaRepository<PasswordHistoryEntity, UUID>
      * @return List of password history entries ordered by creation date (newest first)
      */
     @Query(
-        """
-        SELECT ph FROM PasswordHistoryEntity ph
-        WHERE ph.userId = :userId
-        ORDER BY ph.createdAt DESC
+        value = """
+        SELECT * FROM password_history
+        WHERE user_id = :userId
+        ORDER BY created_at DESC
         LIMIT :limit
-        """
+        """,
+        nativeQuery = true
     )
     fun findRecentByUserId(userId: UUID, limit: Int): List<PasswordHistoryEntity>
 
