@@ -1,5 +1,11 @@
 # Tickr API – Back-end do Todo List SaaS
 
+[![CI Pipeline](https://github.com/vinicius-ssantos/todolistSimplesMVP/actions/workflows/ci.yml/badge.svg)](https://github.com/vinicius-ssantos/todolistSimplesMVP/actions/workflows/ci.yml)
+[![Security Scan](https://github.com/vinicius-ssantos/todolistSimplesMVP/actions/workflows/security.yml/badge.svg)](https://github.com/vinicius-ssantos/todolistSimplesMVP/actions/workflows/security.yml)
+[![Docker Build](https://github.com/vinicius-ssantos/todolistSimplesMVP/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/vinicius-ssantos/todolistSimplesMVP/actions/workflows/docker-publish.yml)
+[![codecov](https://codecov.io/gh/vinicius-ssantos/todolistSimplesMVP/branch/main/graph/badge.svg)](https://codecov.io/gh/vinicius-ssantos/todolistSimplesMVP)
+[![Quality Gate](https://img.shields.io/badge/quality-qodana-blue)](https://github.com/vinicius-ssantos/todolistSimplesMVP/actions/workflows/qodana_code_quality.yml)
+
 Back-end em Kotlin/Spring Boot responsável pela API multi-tenant do Tickr. O projeto oferece cadastro/autenticação de usuários, gestão de listas e tarefas, além de infraestrutura básica de segurança, auditoria e documentação via OpenAPI.
 
 ---
@@ -128,15 +134,24 @@ Use o botão **Authorize** no Swagger para informar o token JWT obtido nos endpo
 
 ## Testes & Qualidade
 ```bash
-./gradlew test                # executa suíte de testes unitários + integração
-./gradlew jacocoTestReport    # gera relatório em build/reports/jacoco/test/html/index.html
+./gradlew test                           # executa suíte de testes unitários + integração
+./gradlew jacocoTestReport               # gera relatório em build/reports/jacoco/test/html/index.html
+./gradlew jacocoTestCoverageVerification # verifica thresholds de cobertura
 ```
 
-Testes de integração utilizam H2 por padrão; algumas suites (`*IT`) podem ser configuradas para Postgres com Testcontainers (ver arquivos em `src/test/kotlin/com/viniss/todo/it`).  
+**Thresholds de Cobertura:**
+- 70% de cobertura mínima global
+- 60% de cobertura mínima por classe
+- 50% de cobertura mínima por método
 
-Ferramentas adicionais:
-- `./gradlew check` roda linting + testes.
-- `./gradlew bootJar` gera o artefato (utilizado no Dockerfile multi-stage).
+Testes de integração utilizam H2 por padrão; algumas suites (`*IT`) podem ser configuradas para Postgres com Testcontainers (ver arquivos em `src/test/kotlin/com/viniss/todo/it`).
+
+**Ferramentas de Qualidade:**
+- `./gradlew check` - roda testes + verificação de cobertura
+- `./gradlew bootJar` - gera o artefato (utilizado no Dockerfile multi-stage)
+- **CI/CD Pipeline** - testes automáticos em todos os PRs
+- **Security Scanning** - CodeQL, OWASP Dependency Check e Trivy
+- **Code Quality** - Qodana analysis integrado
 
 ---
 
