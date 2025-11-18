@@ -188,22 +188,21 @@ class TaskPositionManagerTest {
     // Helper methods
 
     private fun createTodoList(id: UUID): TodoListEntity {
-        return TodoListEntity(name = "Test List").apply {
-            this.id = id
-            this.userId = "test-user"
+        return TodoListEntity(id = id, name = "Test List").apply {
+            this.userId = UUID.randomUUID()
         }
     }
 
     private fun createTask(id: UUID, title: String, position: Int, list: TodoListEntity): TaskEntity {
         return TaskEntity(
+            id = id,
             list = list,
             title = title,
             position = position,
             priority = Priority.MEDIUM,
-            status = Status.TODO
+            status = Status.OPEN
         ).apply {
-            this.id = id
-            this.userId = "test-user"
+            this.userId = UUID.randomUUID()
         }
     }
 }
