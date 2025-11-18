@@ -23,6 +23,23 @@ import java.util.UUID
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
+/**
+ * @deprecated Este serviço viola o princípio de responsabilidade única (SRP).
+ * Use os serviços específicos ao invés:
+ * - [com.viniss.todo.service.list.CreateTodoListService]
+ * - [com.viniss.todo.service.list.UpdateTodoListService]
+ * - [com.viniss.todo.service.list.DeleteTodoListService]
+ * - [com.viniss.todo.service.task.CreateTaskService]
+ * - [com.viniss.todo.service.task.UpdateTaskService]
+ * - [com.viniss.todo.service.task.DeleteTaskService]
+ *
+ * Este serviço será removido em versões futuras.
+ */
+@Deprecated(
+    message = "Use os serviços específicos de list/ e task/ ao invés deste serviço monolítico",
+    replaceWith = ReplaceWith("CreateTodoListService, UpdateTodoListService, etc."),
+    level = DeprecationLevel.WARNING
+)
 @Service
 class TodoListCommandService(
     private val todoListWriteRepository: TodoListWriteRepository,
