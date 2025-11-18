@@ -5,7 +5,7 @@ plugins {
     id("org.springframework.boot") version "3.4.10"
     id("io.spring.dependency-management") version "1.1.7"
 
-    kotlin("plugin.jpa") version "1.9.25" // ativa no-arg + all-open para JPA
+    kotlin("plugin.jpa") version "2.2.21" // ativa no-arg + all-open para JPA
     jacoco
 }
 
