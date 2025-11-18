@@ -48,7 +48,7 @@ class TaskPositionManagerTest {
         assertEquals(1, task2.position) // was 2, shifted up
         assertEquals(3, task3.position) // unchanged
 
-        verify { taskRepository.saveAll(match { it.size == 3 && it.contains(task1) && it.contains(task2) && it.contains(task3) }) }
+        verify { taskRepository.saveAll(match<List<TaskEntity>> { it.size == 3 && it.contains(task1) && it.contains(task2) && it.contains(task3) }) }
     }
 
     @Test
@@ -74,7 +74,7 @@ class TaskPositionManagerTest {
         assertEquals(2, task1.position) // was 1, shifted down
         assertEquals(3, task2.position) // was 2, shifted down
 
-        verify { taskRepository.saveAll(match { it.size == 3 }) }
+        verify { taskRepository.saveAll(match<List<TaskEntity>> { it.size == 3 }) }
     }
 
     @Test
@@ -98,7 +98,7 @@ class TaskPositionManagerTest {
         assertEquals(1, task1.position)
 
         // saveAll should not be called or called with empty list
-        verify(exactly = 0) { taskRepository.saveAll(match { it.isNotEmpty() }) }
+        verify(exactly = 0) { taskRepository.saveAll(match<List<TaskEntity>> { it.isNotEmpty() }) }
     }
 
     @Test
@@ -141,7 +141,7 @@ class TaskPositionManagerTest {
         assertEquals(1, task1.position)
         assertEquals(2, task2.position)
 
-        verify { taskRepository.saveAll(match { it.size == 3 }) }
+        verify { taskRepository.saveAll(match<List<TaskEntity>> { it.size == 3 }) }
         assertEquals(3, result.size)
     }
 
