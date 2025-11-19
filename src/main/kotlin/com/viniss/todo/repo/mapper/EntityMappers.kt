@@ -12,8 +12,8 @@ class EntityMappers {
     fun mapToView(todoListEntity: TodoListEntity): TodoListView = TodoListView(
         id = todoListEntity.id,
         name = todoListEntity.name,
-        createdAt = todoListEntity.createdAt,
-        updatedAt = todoListEntity.updatedAt,
+        createdAt = todoListEntity.createdAt ?: java.time.Instant.now(),
+        updatedAt = todoListEntity.updatedAt ?: java.time.Instant.now(),
         tasks = todoListEntity.tasks
             .sortedBy(TaskEntity::position)
             .map(this::mapToView)
@@ -27,7 +27,7 @@ class EntityMappers {
         status = taskEntity.status,
         dueDate = taskEntity.dueDate,
         position = taskEntity.position,
-        createdAt = taskEntity.createdAt,
-        updatedAt = taskEntity.updatedAt
+        createdAt = taskEntity.createdAt ?: java.time.Instant.now(),
+        updatedAt = taskEntity.updatedAt ?: java.time.Instant.now()
     )
 }
