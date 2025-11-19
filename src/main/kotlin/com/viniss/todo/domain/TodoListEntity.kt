@@ -30,6 +30,7 @@ class TodoListEntity(
         orphanRemoval = true,
         fetch = FetchType.LAZY
     )
+    @jakarta.persistence.OrderBy("position ASC")
     var tasks: MutableList<TaskEntity> = mutableListOf()
 
     override fun equals(other: Any?): Boolean {

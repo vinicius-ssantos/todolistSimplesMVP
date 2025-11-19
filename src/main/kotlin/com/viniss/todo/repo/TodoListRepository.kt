@@ -12,8 +12,8 @@ interface TodoListRepository : JpaRepository<TodoListEntity, UUID> {
     @Query(
         """
             select distinct list from TodoListEntity list
-            left join fetch list.tasks tasks
-            order by list.createdAt asc, tasks.position asc
+            left join fetch list.tasks
+            order by list.createdAt asc
         """
     )
     fun findAllWithTasksOrdered(): List<TodoListEntity>
@@ -29,9 +29,9 @@ interface TodoListRepository : JpaRepository<TodoListEntity, UUID> {
 
     @Query("""
         select distinct list from TodoListEntity list
-        left join fetch list.tasks tasks
+        left join fetch list.tasks
         where list.userId = :userId
-        order by list.createdAt asc, tasks.position asc
+        order by list.createdAt asc
     """)
     fun findAllWithTasksOrderedByUser(userId: UUID): List<TodoListEntity>
 
@@ -45,9 +45,9 @@ interface TodoListRepository : JpaRepository<TodoListEntity, UUID> {
     // Fetch full entities with tasks for given IDs
     @Query("""
         select distinct list from TodoListEntity list
-        left join fetch list.tasks tasks
+        left join fetch list.tasks
         where list.id in :ids and list.userId = :userId
-        order by list.createdAt asc, tasks.position asc
+        order by list.createdAt asc
     """)
     fun findByIdsWithTasks(ids: List<UUID>, userId: UUID): List<TodoListEntity>
 
