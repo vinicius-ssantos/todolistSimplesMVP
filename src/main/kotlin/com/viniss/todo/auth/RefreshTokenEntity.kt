@@ -8,10 +8,9 @@ import java.util.*
 @Table(name = "refresh_token")
 data class RefreshTokenEntity(
     @Id
-    @Column(columnDefinition = "UUID")
     val id: UUID = UUID.randomUUID(),
 
-    @Column(name = "user_id", nullable = false, columnDefinition = "UUID")
+    @Column(name = "user_id", nullable = false)
     val userId: UUID,
 
     @Column(nullable = false, unique = true, length = 500)

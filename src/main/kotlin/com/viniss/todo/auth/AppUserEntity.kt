@@ -10,7 +10,6 @@ import java.util.*
 @Table(name = "app_user")
 data class AppUserEntity(
 @Id
-@Column(columnDefinition = "UUID")
 val id: UUID = UUID.randomUUID(),
 
 

@@ -8,13 +8,12 @@ import java.util.*
 @Table(name = "blacklisted_token")
 data class BlacklistedTokenEntity(
     @Id
-    @Column(columnDefinition = "UUID")
     val id: UUID = UUID.randomUUID(),
 
     @Column(name = "token_jti", nullable = false, unique = true)
     val tokenJti: String,
 
-    @Column(name = "user_id", nullable = false, columnDefinition = "UUID")
+    @Column(name = "user_id", nullable = false)
     val userId: UUID,
 
     @Column(name = "blacklisted_at", nullable = false)
