@@ -1,5 +1,6 @@
 package com.viniss.todo.security
 
+import com.viniss.todo.config.RateLimitConfig
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -7,9 +8,17 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
+/**
+ * Filter that applies rate limiting to configured endpoints.
+ *
+ * Refactored to follow SOLID principles:
+ * - Open/Closed: Path patterns are externalized via RateLimitConfig
+ * - Single Responsibility: Only handles HTTP filtering and delegates rate limiting logic
+ */
 @Component
 class RateLimitFilter(
-    private val rateLimitService: RateLimitService
+    private val rateLimitService: RateLimitService,
+    private val config: RateLimitConfig
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -17,10 +26,15 @@ class RateLimitFilter(
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
+        if (!config.enabled) {
+            filterChain.doFilter(request, response)
+            return
+        }
+
         val path = request.requestURI
 
-        // Apply rate limiting only to authentication endpoints
-        if (path.startsWith("/api/auth/")) {
+        // Apply rate limiting to configured path patterns
+        if (shouldApplyRateLimit(path)) {
             val clientIp = getClientIP(request)
             val key = "$clientIp:${path}"
 
@@ -33,6 +47,14 @@ class RateLimitFilter(
         }
 
         filterChain.doFilter(request, response)
+    }
+
+    /**
+     * Checks if the given path matches any configured rate limit patterns.
+     * Supports prefix matching.
+     */
+    private fun shouldApplyRateLimit(path: String): Boolean {
+        return config.paths.any { pattern -> path.startsWith(pattern) }
     }
 
     private fun getClientIP(request: HttpServletRequest): String {
