@@ -6,6 +6,32 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 
 
+/**
+ * @deprecated This service violates Single Responsibility Principle (SRP).
+ * It has been decomposed into 4 focused services:
+ * - [com.viniss.todo.auth.service.UserRegistrationService] for user registration
+ * - [com.viniss.todo.auth.service.UserLoginService] for authentication
+ * - [com.viniss.todo.auth.service.AccessTokenRefreshService] for token refresh
+ * - [com.viniss.todo.auth.service.UserLogoutService] for logout
+ *
+ * This service is no longer used by AuthController and will be removed in future versions.
+ *
+ * BEFORE (SRP violation):
+ * - 7 dependencies
+ * - 4 responsibilities (register, login, refresh, logout)
+ * - Difficult to test and maintain
+ *
+ * AFTER (SRP compliant):
+ * - UserRegistrationService: 6 dependencies, 1 responsibility
+ * - UserLoginService: 5 dependencies, 1 responsibility
+ * - AccessTokenRefreshService: 3 dependencies, 1 responsibility
+ * - UserLogoutService: 2 dependencies, 1 responsibility
+ */
+@Deprecated(
+    message = "Use focused services instead: UserRegistrationService, UserLoginService, AccessTokenRefreshService, UserLogoutService",
+    replaceWith = ReplaceWith("UserRegistrationService, UserLoginService, AccessTokenRefreshService, UserLogoutService"),
+    level = DeprecationLevel.WARNING
+)
 @Service
 class AuthService(
     private val repo: AppUserRepository,
