@@ -149,27 +149,27 @@ tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
                     "**/auth/NimbusRsaTokenService.class",
                     "**/auth/AuthExceptionHandler.class",
 
-                    // Classes SOLID ainda sem testes (TODO: adicionar testes e remover)
-                    "**/auth/service/*.class",
-                    "**/auth/maintenance/*.class",
-                    "**/auth/token/*.class",
-                    "**/email/provider/*.class",
+                    // DTOs and entities (data classes)
                     "**/email/model/*.class",
-                    "**/email/EmailService.class",
-                    "**/config/RateLimitConfig.class",
                     "**/auth/BlacklistedTokenEntity.class",
                     "**/auth/VerifyEmailResponse.class",
                     "**/auth/PasswordValidationResult*.class",
-                    "**/auth/PasswordHistoryService.class",
                     "**/auth/RefreshTokenEntity.class",
                     "**/auth/AuthResponse.class",
-                    "**/auth/TokenBlacklistService.class",
                     "**/auth/VerifyEmailRequest.class",
                     "**/auth/RefreshTokenRequest.class",
+
+                    // Config classes
+                    "**/config/RateLimitConfig.class",
+
+                    // Provider interfaces and implementations not tested
+                    "**/email/provider/EmailProvider.class",
+                    "**/email/provider/SendGridEmailProvider.class",
+
+                    // Legacy/Deprecated classes
                     "**/auth/AuthService.class",
+                    "**/auth/TokenBlacklistService.class",
                     "**/auth/RefreshTokenService.class",
-                    "**/auth/EmailVerificationService.class",
-                    "**/auth/PasswordValidator.class",
 
                     // Features avançadas ainda não implementadas
                     "**/domain/RecurrencePattern*.class",
@@ -194,9 +194,7 @@ tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
         rule {
             enabled = true
             limit {
-                // Reduzido temporariamente de 70% para 60% devido às refatorações SOLID
-                // TODO: Adicionar testes para as novas classes e restaurar para 70%
-                minimum = "0.60".toBigDecimal() // 60% de cobertura mínima
+                minimum = "0.70".toBigDecimal() // 70% de cobertura mínima
             }
         }
         rule {
@@ -204,9 +202,7 @@ tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
             element = "CLASS"
             limit {
                 counter = "LINE"
-                // Reduzido temporariamente de 60% para 45% devido às refatorações SOLID
-                // TODO: Adicionar testes e restaurar para 60%
-                minimum = "0.45".toBigDecimal() // 45% por classe
+                minimum = "0.60".toBigDecimal() // 60% por classe
             }
 
             // Exclui classes específicas das regras de cobertura
@@ -217,33 +213,27 @@ tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
                 "com.viniss.todo.auth.NimbusRsaTokenService",
                 "com.viniss.todo.auth.AuthExceptionHandler",
 
-                // Classes SOLID ainda sem testes (TODO: adicionar testes e remover dessas exclusões)
-                "com.viniss.todo.auth.service.UserRegistrationService",
-                "com.viniss.todo.auth.service.UserLoginService",
-                "com.viniss.todo.auth.service.AccessTokenRefreshService",
-                "com.viniss.todo.auth.service.UserLogoutService",
-                "com.viniss.todo.auth.maintenance.RefreshTokenMaintenanceService",
-                "com.viniss.todo.auth.maintenance.TokenBlacklistMaintenanceService",
-                "com.viniss.todo.auth.token.JwtTokenExtractor",
-                "com.viniss.todo.email.provider.EmailProvider",
-                "com.viniss.todo.email.provider.LoggingEmailProvider",
-                "com.viniss.todo.email.provider.SendGridEmailProvider",
+                // DTOs and entities (data classes)
                 "com.viniss.todo.email.model.EmailMessage",
-                "com.viniss.todo.config.RateLimitConfig",
                 "com.viniss.todo.auth.BlacklistedTokenEntity",
                 "com.viniss.todo.auth.VerifyEmailResponse",
                 "com.viniss.todo.auth.PasswordValidationResult*",
-                "com.viniss.todo.auth.PasswordHistoryService",
                 "com.viniss.todo.auth.RefreshTokenEntity",
                 "com.viniss.todo.auth.AuthResponse",
-                "com.viniss.todo.email.EmailService",
-                "com.viniss.todo.auth.TokenBlacklistService",
                 "com.viniss.todo.auth.VerifyEmailRequest",
                 "com.viniss.todo.auth.RefreshTokenRequest",
+
+                // Config classes
+                "com.viniss.todo.config.RateLimitConfig",
+
+                // Provider interfaces
+                "com.viniss.todo.email.provider.EmailProvider",
+                "com.viniss.todo.email.provider.SendGridEmailProvider",
+
+                // Legacy/Deprecated classes
                 "com.viniss.todo.auth.AuthService",
+                "com.viniss.todo.auth.TokenBlacklistService",
                 "com.viniss.todo.auth.RefreshTokenService",
-                "com.viniss.todo.auth.EmailVerificationService",
-                "com.viniss.todo.auth.PasswordValidator",
 
                 // Features avançadas ainda não implementadas
                 "com.viniss.todo.domain.RecurrencePattern*",
@@ -260,9 +250,7 @@ tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
             element = "METHOD"
             limit {
                 counter = "LINE"
-                // Reduzido temporariamente de 50% para 35% devido às refatorações SOLID
-                // TODO: Adicionar testes e restaurar para 50%
-                minimum = "0.35".toBigDecimal() // 35% por método
+                minimum = "0.50".toBigDecimal() // 50% por método
             }
 
             // Exclui métodos auto-gerados
@@ -290,7 +278,6 @@ tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
 }
 
 // Adiciona verificação de cobertura ao check
-// TODO: Re-habilitar após adicionar testes para as novas classes SOLID
-// tasks.named("check") {
-//     dependsOn(tasks.named("jacocoTestCoverageVerification"))
-// }
+tasks.named("check") {
+    dependsOn(tasks.named("jacocoTestCoverageVerification"))
+}
