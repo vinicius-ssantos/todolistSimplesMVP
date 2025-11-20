@@ -111,7 +111,7 @@ abstract class AuthControllerExtendedIT {
             contentType = MediaType.APPLICATION_JSON
             content = """{"email":"$email","password":"$password"}"""
         }.andExpect {
-            status { is5xxServerError() }
+            status { isBadRequest() }
         }.andReturn()
 
         val errorMessage = response.response.contentAsString
@@ -136,7 +136,7 @@ abstract class AuthControllerExtendedIT {
             contentType = MediaType.APPLICATION_JSON
             content = """{"email":"$email","password":"$password"}"""
         }.andExpect {
-            status { is5xxServerError() }
+            status { isBadRequest() }
         }.andReturn().let { response ->
             assertThat(response.response.contentAsString)
                 .containsIgnoringCase("email already registered")
@@ -209,7 +209,7 @@ abstract class AuthControllerExtendedIT {
             contentType = MediaType.APPLICATION_JSON
             content = """{"email":"$email","password":"$password"}"""
         }.andExpect {
-            status { is5xxServerError() }
+            status { isBadRequest() }
         }.andReturn().let { response ->
             assertThat(response.response.contentAsString)
                 .containsIgnoringCase("invalid credentials")
@@ -233,7 +233,7 @@ abstract class AuthControllerExtendedIT {
             contentType = MediaType.APPLICATION_JSON
             content = """{"email":"$email","password":"$wrongPassword"}"""
         }.andExpect {
-            status { is5xxServerError() }
+            status { isBadRequest() }
         }.andReturn().let { response ->
             assertThat(response.response.contentAsString)
                 .containsIgnoringCase("invalid credentials")
@@ -251,7 +251,7 @@ abstract class AuthControllerExtendedIT {
                 contentType = MediaType.APPLICATION_JSON
                 content = """{"email":"$email","password":"$password"}"""
             }.andExpect {
-                status { is5xxServerError() }
+                status { isBadRequest() }
             }
         }
 
@@ -260,7 +260,7 @@ abstract class AuthControllerExtendedIT {
             contentType = MediaType.APPLICATION_JSON
             content = """{"email":"$email","password":"$password"}"""
         }.andExpect {
-            status { is5xxServerError() }
+            status { isBadRequest() }
         }.andReturn().let { response ->
             assertThat(response.response.contentAsString)
                 .containsIgnoringCase("locked")
@@ -284,7 +284,7 @@ abstract class AuthControllerExtendedIT {
                 contentType = MediaType.APPLICATION_JSON
                 content = """{"email":"$email","password":"WrongP@ss123"}"""
             }.andExpect {
-                status { is5xxServerError() }
+                status { isBadRequest() }
             }
         }
 
@@ -302,7 +302,7 @@ abstract class AuthControllerExtendedIT {
                 contentType = MediaType.APPLICATION_JSON
                 content = """{"email":"$email","password":"WrongP@ss123"}"""
             }.andExpect {
-                status { is5xxServerError() }
+                status { isBadRequest() }
             }
         }
     }
@@ -357,7 +357,7 @@ abstract class AuthControllerExtendedIT {
             contentType = MediaType.APPLICATION_JSON
             content = """{"refreshToken":"$invalidToken"}"""
         }.andExpect {
-            status { is5xxServerError() }
+            status { isBadRequest() }
         }
     }
 
@@ -383,7 +383,7 @@ abstract class AuthControllerExtendedIT {
             contentType = MediaType.APPLICATION_JSON
             content = """{"refreshToken":"${expiredToken.token}"}"""
         }.andExpect {
-            status { is5xxServerError() }
+            status { isBadRequest() }
         }.andReturn().let { response ->
             assertThat(response.response.contentAsString)
                 .containsIgnoringCase("expired")
@@ -458,7 +458,7 @@ abstract class AuthControllerExtendedIT {
             contentType = MediaType.APPLICATION_JSON
             content = """{"refreshToken":"${authResponse.refreshToken}"}"""
         }.andExpect {
-            status { is5xxServerError() }
+            status { isBadRequest() }
         }
     }
 
@@ -489,7 +489,7 @@ abstract class AuthControllerExtendedIT {
         mockMvc.get("/v1/lists") {
             header("Authorization", "Bearer ${authResponse.accessToken}")
         }.andExpect {
-            status { isIn(401, 403) }
+            status { isUnauthorized() }
         }
     }
 
@@ -555,14 +555,14 @@ abstract class AuthControllerExtendedIT {
         blacklistedTokenRepository.save(
             BlacklistedTokenEntity(
                 userId = user.id,
-                jti = "expired-jti-1",
+                tokenJti = "expired-jti-1",
                 expiresAt = Instant.now().minusSeconds(3600)
             )
         )
         blacklistedTokenRepository.save(
             BlacklistedTokenEntity(
                 userId = user.id,
-                jti = "expired-jti-2",
+                tokenJti = "expired-jti-2",
                 expiresAt = Instant.now().minusSeconds(7200)
             )
         )
@@ -571,7 +571,7 @@ abstract class AuthControllerExtendedIT {
         blacklistedTokenRepository.save(
             BlacklistedTokenEntity(
                 userId = user.id,
-                jti = "active-jti",
+                tokenJti = "active-jti",
                 expiresAt = Instant.now().plusSeconds(3600)
             )
         )
@@ -584,7 +584,7 @@ abstract class AuthControllerExtendedIT {
         // Verify only active token remains
         val remainingTokens = blacklistedTokenRepository.findByUserId(user.id)
         assertThat(remainingTokens).hasSize(1)
-        assertThat(remainingTokens.first().jti).isEqualTo("active-jti")
+        assertThat(remainingTokens.first().tokenJti).isEqualTo("active-jti")
     }
 
     @ParameterizedTest

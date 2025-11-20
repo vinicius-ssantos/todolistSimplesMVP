@@ -9,6 +9,8 @@ import java.util.*
 interface BlacklistedTokenRepository : JpaRepository<BlacklistedTokenEntity, UUID> {
     fun existsByTokenJti(tokenJti: String): Boolean
 
+    fun findByUserId(userId: UUID): List<BlacklistedTokenEntity>
+
     /**
      * Deletes all expired blacklisted tokens.
      * @return Number of tokens deleted

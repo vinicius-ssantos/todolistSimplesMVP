@@ -53,7 +53,7 @@ class PasswordValidatorTest {
         "V@lid1234Pass",
         "Test!ng2024Secure",
         "Qu!ck#Fox123",
-        "P@ssw0rd$ecure"
+        "P@ssw0rd\$ecure"
     ])
     fun `should accept valid passwords`(password: String) {
         val result = validator.validate(password)
@@ -107,7 +107,7 @@ class PasswordValidatorTest {
         "nouppercasepassword123!",
         "lowercase@only2024",
         "test!ng123secure",
-        "p@ssw0rd$ecure123"
+        "p@ssw0rd\$ecure123"
     ])
     fun `should reject passwords without uppercase letter`(password: String) {
         val result = validator.validate(password)
@@ -139,7 +139,7 @@ class PasswordValidatorTest {
         "NOLOWERCASE123!",
         "UPPERCASE@ONLY2024",
         "TEST!NG123SECURE",
-        "P@SSW0RD$ECURE123"
+        "P@SSW0RD\$ECURE123"
     ])
     fun `should reject passwords without lowercase letter`(password: String) {
         val result = validator.validate(password)
@@ -204,7 +204,7 @@ class PasswordValidatorTest {
     @CsvSource(
         "Atleast1Special!, !",
         "P@ssw0rdSecure, @",
-        "Multiple#123$Chars, #,$",
+        "Multiple#123\$Chars, #,\$",
         "Test[Brackets]1, [,]",
         "Semi;Colon:1Pass, ;,:",
         "Question?Mark1Pass, ?",
@@ -283,7 +283,7 @@ class PasswordValidatorTest {
     @ValueSource(strings = [
         "SecureP@ss2024",    // No sequences
         "My!Str0ng#Pass",    // No sequences
-        "C0mpl3x$Secure",    // No sequences
+        "C0mpl3x\$Secure",    // No sequences
         "V@lid#Test1492"     // Non-sequential numbers
     ])
     fun `should accept passwords without sequential characters`(password: String) {

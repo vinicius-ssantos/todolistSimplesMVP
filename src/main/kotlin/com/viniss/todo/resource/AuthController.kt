@@ -58,8 +58,9 @@ class AuthController(
     @PostMapping("/logout")
     fun logout(
         @RequestHeader("Authorization") authHeader: String,
-        @AuthenticationPrincipal userId: UUID
+        @AuthenticationPrincipal userId: UUID?
     ): ResponseEntity<Map<String, String>> {
+        requireNotNull(userId) { "User ID not found in authentication context" }
         val token = authHeader.removePrefix("Bearer ").trim()
         userLogoutService.logout(userId, token)
         return ResponseEntity.ok(mapOf("message" to "Logged out successfully"))
