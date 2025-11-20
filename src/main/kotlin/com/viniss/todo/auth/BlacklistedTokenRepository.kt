@@ -9,7 +9,11 @@ import java.util.*
 interface BlacklistedTokenRepository : JpaRepository<BlacklistedTokenEntity, UUID> {
     fun existsByTokenJti(tokenJti: String): Boolean
 
+    /**
+     * Deletes all expired blacklisted tokens.
+     * @return Number of tokens deleted
+     */
     @Modifying
     @Query("DELETE FROM BlacklistedTokenEntity bt WHERE bt.expiresAt < :now")
-    fun deleteExpiredTokens(now: Instant)
+    fun deleteExpiredTokens(now: Instant): Long
 }
