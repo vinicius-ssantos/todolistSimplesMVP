@@ -1,5 +1,6 @@
 package com.viniss.todo.security
 
+import com.viniss.todo.config.RateLimitConfig
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -10,7 +11,13 @@ class RateLimitServiceTest {
 
     @BeforeEach
     fun setUp() {
-        service = RateLimitService()
+        val config = RateLimitConfig(
+            maxRequests = 5,
+            windowMinutes = 1,
+            paths = listOf("/api/auth/"),
+            enabled = true
+        )
+        service = RateLimitService(config)
     }
 
     @Test
