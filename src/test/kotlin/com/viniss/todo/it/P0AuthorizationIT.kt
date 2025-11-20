@@ -20,6 +20,7 @@ abstract class P0AuthorizationIT {
 
     @Autowired protected lateinit var mockMvc: MockMvc
     @Autowired protected lateinit var mapper: ObjectMapper
+    @Autowired protected lateinit var rateLimitService: com.viniss.todo.security.RateLimitService
 
     private lateinit var tokenA: String
     private lateinit var tokenB: String
@@ -28,6 +29,7 @@ abstract class P0AuthorizationIT {
 
     @BeforeEach
     fun setUp() {
+        rateLimitService.reset()
         tokenA = register("a${rand()}@ex.com", "SecureP@ss2024")
         tokenB = register("b${rand()}@ex.com", "SecureP@ss2024")
         listId = createList(tokenA, name = "Lista A")

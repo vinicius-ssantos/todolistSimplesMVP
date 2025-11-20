@@ -20,12 +20,8 @@ import java.util.*
 class TodoListController(
     private val listQueryUseCase: ListQueryUseCase,
     private val createTodoListUseCase: CreateTodoListUseCase,
-    private val createTaskUseCase: CreateTaskUseCase,
     private val updateTodoListUseCase: UpdateTodoListUseCase,
-    private val updateTaskUseCase: UpdateTaskUseCase,
-    private val getTaskUseCase: GetTaskUseCase,
-    private val deleteTodoListUseCase: DeleteTodoListUseCase,
-    private val deleteTaskUseCase: DeleteTaskUseCase
+    private val deleteTodoListUseCase: DeleteTodoListUseCase
 ) {
     @GetMapping
     fun getAll(
@@ -48,14 +44,6 @@ class TodoListController(
     fun createList(@Valid @RequestBody request: CreateTodoListRequest): TodoListResponse =
         createTodoListUseCase.create(request.toCommand()).toResponse()
 
-    @PostMapping("/{listId}/tasks")
-    @ResponseStatus(HttpStatus.CREATED)
-    fun createTask(
-        @PathVariable listId: UUID,
-        @Valid @RequestBody request: CreateTaskRequest
-    ): TaskResponse =
-        createTaskUseCase.create(listId, request.toCommand()).toResponse()
-
     @PatchMapping("/{listId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun updateList(@PathVariable listId: UUID, @Valid @RequestBody body: UpdateTodoListRequest): ResponseEntity<Void> {
@@ -63,38 +51,10 @@ class TodoListController(
         return ResponseEntity.noContent().build()
     }
 
-    @PatchMapping("/{listId}/tasks/{taskId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun updateTask(
-        @PathVariable listId: UUID,
-        @PathVariable taskId: UUID,
-        @Valid @RequestBody request: UpdateTaskRequest
-    ): ResponseEntity<Void> {
-        updateTaskUseCase.update(listId, taskId, request.toCommand())
-        return ResponseEntity.noContent().build()
-    }
-
-    @GetMapping("/{listId}/tasks/{taskId}")
-    fun getTaskById(
-        @PathVariable listId: UUID,
-        @PathVariable taskId: UUID
-    ): TaskResponse =
-        getTaskUseCase.findById(listId, taskId).toResponse()
-
     @DeleteMapping("/{listId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteList(@PathVariable listId: UUID): ResponseEntity<Void> {
         deleteTodoListUseCase.delete(listId)
-        return ResponseEntity.noContent().build()
-    }
-
-    @DeleteMapping("/{listId}/tasks/{taskId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun deleteTask(
-        @PathVariable listId: UUID,
-        @PathVariable taskId: UUID
-    ): ResponseEntity<Void> {
-        deleteTaskUseCase.delete(listId, taskId)
         return ResponseEntity.noContent().build()
     }
 

@@ -37,7 +37,7 @@ interface TodoListRepository : JpaRepository<TodoListEntity, UUID> {
 
     // Query for pagination - IDs only (no join fetch to avoid pagination issues)
     @Query("""
-        select distinct list.id from TodoListEntity list
+        select list.id from TodoListEntity list
         where list.userId = :userId
     """)
     fun findIdsByUser(userId: UUID, pageable: Pageable): Page<UUID>

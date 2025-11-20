@@ -84,8 +84,12 @@ abstract class TodoListControllerIT {
             }
             .andReturn()
 
+        // Parse the paginated response and extract the content array
+        val jsonNode = objectMapper.readTree(result.response.contentAsString)
+        val contentNode = jsonNode.get("content")
+
         val response = objectMapper.readValue(
-            result.response.contentAsString,
+            contentNode.toString(),
             object : TypeReference<List<TodoListResponse>>() {}
         )
 

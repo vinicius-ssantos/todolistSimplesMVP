@@ -26,9 +26,11 @@ abstract class AuthControllerIT {
     @Autowired protected lateinit var todoListRepository: TodoListRepository
     @Autowired protected lateinit var taskRepository: TaskRepository
     @Autowired protected lateinit var appUserRepository: AppUserRepository
+    @Autowired protected lateinit var rateLimitService: com.viniss.todo.security.RateLimitService
 
     @BeforeEach
     fun cleanDatabase() {
+        rateLimitService.reset()
         taskRepository.deleteAll()
         todoListRepository.deleteAll()
         appUserRepository.deleteAll()

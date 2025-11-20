@@ -30,4 +30,11 @@ class RateLimitService {
         val bucket = resolveBucket(key)
         return bucket.tryConsume(1)
     }
+
+    /**
+     * Clear all rate limit buckets. Useful for testing.
+     */
+    fun reset() {
+        cache.clear()
+    }
 }
