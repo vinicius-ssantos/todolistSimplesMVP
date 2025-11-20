@@ -8,20 +8,28 @@ import com.viniss.todo.service.model.TaskCreationData
 import com.viniss.todo.service.model.TaskView
 import com.viniss.todo.service.port.CreateTaskUseCase
 import com.viniss.todo.service.port.TodoListReadRepository
-import com.viniss.todo.service.port.TodoListWriteRepository
+import com.viniss.todo.service.port.write.TaskCreator
 import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 /**
- * Serviço responsável pela criação de tarefas.
- * Implementa o princípio de responsabilidade única (SRP).
+ * Service responsible for creating Tasks.
+ *
+ * Follows SOLID principles:
+ * - SRP: Only handles Task creation
+ * - ISP: Depends only on TaskCreator (1 method) instead of TodoListWriteRepository (6 methods)
+ *
+ * Benefits:
+ * - Clearer dependencies (only addTask() is needed)
+ * - Easier to test (mock only TaskCreator)
+ * - Better encapsulation (no access to unneeded list/update/delete methods)
  */
 @Service
 @Primary
 class CreateTaskService(
-    private val todoListWriteRepository: TodoListWriteRepository,
+    private val taskCreator: TaskCreator,
     private val todoListReadRepository: TodoListReadRepository
 ) : CreateTaskUseCase {
 
@@ -48,6 +56,6 @@ class CreateTaskService(
             position = finalPosition
         )
 
-        return todoListWriteRepository.addTask(listId, taskCreation)
+        return taskCreator.addTask(listId, taskCreation)
     }
 }

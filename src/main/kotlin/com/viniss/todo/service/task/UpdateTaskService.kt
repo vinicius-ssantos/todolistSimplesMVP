@@ -4,21 +4,29 @@ import com.viniss.todo.service.exception.TodoListNotFoundException
 import com.viniss.todo.service.model.TaskView
 import com.viniss.todo.service.model.UpdateTaskCommand
 import com.viniss.todo.service.port.TodoListReadRepository
-import com.viniss.todo.service.port.TodoListWriteRepository
 import com.viniss.todo.service.port.UpdateTaskUseCase
+import com.viniss.todo.service.port.write.TaskUpdater
 import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 /**
- * Serviço responsável pela atualização de tarefas.
- * Implementa o princípio de responsabilidade única (SRP).
+ * Service responsible for updating Tasks.
+ *
+ * Follows SOLID principles:
+ * - SRP: Only handles Task updates
+ * - ISP: Depends only on TaskUpdater (1 method) instead of TodoListWriteRepository (6 methods)
+ *
+ * Benefits:
+ * - Clearer dependencies (only updateTask() is needed)
+ * - Easier to test (mock only TaskUpdater)
+ * - Better encapsulation (no access to unneeded list/create/delete methods)
  */
 @Service
 @Primary
 class UpdateTaskService(
-    private val todoListWriteRepository: TodoListWriteRepository,
+    private val taskUpdater: TaskUpdater,
     private val todoListReadRepository: TodoListReadRepository
 ) : UpdateTaskUseCase {
 
@@ -44,6 +52,6 @@ class UpdateTaskService(
             updates["position"] = it
         }
 
-        return todoListWriteRepository.updateTask(listId, taskId, updates)
+        return taskUpdater.updateTask(listId, taskId, updates)
     }
 }
