@@ -34,3 +34,15 @@ rate-limit:
   window-minutes: ${RATE_LIMIT_WINDOW_MINUTES:1}
   paths:
     - /api/auth/
+
+# Email Provider Configuration
+# Follows Dependency Inversion Principle - EmailService depends on EmailProvider abstraction
+# Supports multiple providers without code changes (Open/Closed Principle)
+email:
+  provider: ${EMAIL_PROVIDER:logging}  # Options: logging, sendgrid, aws-ses, smtp
+
+  # SendGrid configuration (used when provider=sendgrid)
+  sendgrid:
+    api-key: ${SENDGRID_API_KEY:}
+    default-from: ${SENDGRID_FROM:noreply@todolist.com}
+    enabled: ${SENDGRID_ENABLED:false}
