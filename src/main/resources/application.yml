@@ -25,3 +25,12 @@ jwt:
   rsaKeyId: null
   jwksCacheTtlSeconds: 300
   jwksCacheRefreshSeconds: 30
+
+# Rate Limiting Configuration
+# Follows Open/Closed Principle - allows configuration changes without code modification
+rate-limit:
+  enabled: ${RATE_LIMIT_ENABLED:true}
+  max-requests: ${RATE_LIMIT_MAX_REQUESTS:5}
+  window-minutes: ${RATE_LIMIT_WINDOW_MINUTES:1}
+  paths:
+    - /api/auth/
