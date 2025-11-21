@@ -54,7 +54,7 @@ class RefreshTokenMaintenanceService(
      * @return Number of tokens deleted
      */
     @Transactional
-    fun cleanupExpiredTokensNow(): Long {
+    fun cleanupExpiredTokensNow(): Int {
         val now = Instant.now()
         logger.info("Manual cleanup triggered for expired refresh tokens")
 
@@ -64,7 +64,7 @@ class RefreshTokenMaintenanceService(
             deletedCount
         } catch (e: Exception) {
             logger.error("Error during manual cleanup of refresh tokens", e)
-            0L
+            0
         }
     }
 

@@ -10,7 +10,7 @@ data class AuthRequest(
     val email: String,
 
     @field:NotBlank(message = "Password must not be blank")
-    @field:Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
+    @field:Size(min = 12, max = 100, message = "Password must be at least 12 characters")
     val password: String
 )
 

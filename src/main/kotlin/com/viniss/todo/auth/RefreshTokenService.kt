@@ -99,7 +99,7 @@ class RefreshTokenService(
      * @return Number of tokens revoked
      */
     @Transactional
-    fun revokeAllUserTokens(userId: UUID): Long {
+    fun revokeAllUserTokens(userId: UUID): Int {
         val deletedCount = refreshTokenRepository.deleteAllByUserId(userId)
         logger.info("Revoked {} refresh tokens for user: {}", deletedCount, userId)
         return deletedCount

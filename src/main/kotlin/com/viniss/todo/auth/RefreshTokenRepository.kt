@@ -14,17 +14,17 @@ interface RefreshTokenRepository : JpaRepository<RefreshTokenEntity, UUID> {
      * Deletes all refresh tokens for a specific user.
      * @return Number of tokens deleted
      */
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM RefreshTokenEntity rt WHERE rt.userId = :userId")
-    fun deleteAllByUserId(userId: UUID): Long
+    fun deleteAllByUserId(userId: UUID): Int
 
     /**
      * Deletes all expired refresh tokens.
      * @return Number of tokens deleted
      */
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM RefreshTokenEntity rt WHERE rt.expiresAt < :now")
-    fun deleteExpiredTokens(now: Instant): Long
+    fun deleteExpiredTokens(now: Instant): Int
 
     /**
      * Counts active (non-expired) refresh tokens for a user.

@@ -17,6 +17,12 @@ class ApiExceptionHandler {
         message = ex.message ?: "Invalid request"
     )
 
+    @ExceptionHandler(IllegalStateException::class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun handleIllegalState(ex: IllegalStateException) = ApiErrorResponse(
+        message = ex.message ?: "Invalid state"
+    )
+
     @ExceptionHandler(TodoListNotFoundException::class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     fun handleTodoListNotFound(ex: TodoListNotFoundException) = ApiErrorResponse(
