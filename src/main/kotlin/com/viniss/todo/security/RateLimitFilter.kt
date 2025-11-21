@@ -33,8 +33,10 @@ class RateLimitFilter(
 
         val path = request.requestURI
 
-        // Skip rate limiting for login endpoint - it has its own rate limiting via LoginAttemptService
-        if (path == "/api/auth/login") {
+        // Skip rate limiting for login and register endpoints
+        // - Login has its own rate limiting via LoginAttemptService (email-based)
+        // - Register has other protections (email uniqueness, password validation)
+        if (path == "/api/auth/login" || path == "/api/auth/register") {
             filterChain.doFilter(request, response)
             return
         }
