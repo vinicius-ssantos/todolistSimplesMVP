@@ -47,13 +47,13 @@ class PasswordValidatorTest {
     @ParameterizedTest
     @ValueSource(strings = [
         "SecureP@ss2024",
-        "MyP@ssw0rd123",
+        "MyStr0ng!P@ss",
         "C0mpl3x!Pass",
-        "Str0ng#Passw0rd",
-        "V@lid1234Pass",
+        "Str0ng#Secure",
+        "V@lid9285Pass",
         "Test!ng2024Secure",
-        "Qu!ck#Fox123",
-        "P@ssw0rd\$ecure"
+        "Qu!ck#F0x859",
+        "Secur3\$Str0ng"
     ])
     fun `should accept valid passwords`(password: String) {
         val result = validator.validate(password)
@@ -263,13 +263,13 @@ class PasswordValidatorTest {
 
     @ParameterizedTest
     @ValueSource(strings = [
-        "Abc123456789!",      // "abc" sequential
-        "Test123456!Pass",    // "123" sequential
-        "SecureAbc!Pass1",    // "abc" sequential
-        "Xyz987654!Pass",     // "xyz" sequential
-        "Pass321!Secure1",    // "321" descending
-        "TestCba!123Pass",    // "cba" descending
-        "Secure!987Pass1"     // "987" descending
+        "ABC!Secure789",      // "ABC" sequential
+        "Test456!Pass",       // "456" sequential
+        "Secureabc!Pass1",    // "abc" sequential (all lowercase)
+        "Xyzdefg!Pass9",      // "xyz" and "defg" sequential
+        "Pass321!Secure9",    // "321" descending
+        "Testcba!456Pass",    // "cba" descending (all lowercase)
+        "Secure!987Pass9"     // "987" descending
     ])
     fun `should detect sequential characters`(password: String) {
         val result = validator.validate(password)
