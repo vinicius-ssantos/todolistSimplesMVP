@@ -52,7 +52,7 @@ class AccessTokenRefreshService(
         val userId = refreshTokenService.validateAndGetUserId(refreshToken)
             ?: run {
                 logger.warn("Invalid or expired refresh token")
-                error("Invalid refresh token")
+                error("Invalid or expired refresh token")
             }
 
         // Find user

@@ -260,7 +260,7 @@ abstract class AuthControllerExtendedIT {
             contentType = MediaType.APPLICATION_JSON
             content = """{"email":"$email","password":"$password"}"""
         }.andExpect {
-            status { isBadRequest() }
+            status { isTooManyRequests() }
         }.andReturn().let { response ->
             assertThat(response.response.contentAsString)
                 .containsIgnoringCase("locked")

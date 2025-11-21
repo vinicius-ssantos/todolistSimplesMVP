@@ -15,7 +15,7 @@ interface BlacklistedTokenRepository : JpaRepository<BlacklistedTokenEntity, UUI
      * Deletes all expired blacklisted tokens.
      * @return Number of tokens deleted
      */
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM BlacklistedTokenEntity bt WHERE bt.expiresAt < :now")
-    fun deleteExpiredTokens(now: Instant): Long
+    fun deleteExpiredTokens(now: Instant): Int
 }

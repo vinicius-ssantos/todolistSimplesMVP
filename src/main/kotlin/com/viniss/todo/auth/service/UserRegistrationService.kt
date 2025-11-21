@@ -12,13 +12,14 @@ import org.springframework.stereotype.Service
  * - Only handles user registration logic
  * - Separated from login, token refresh, and logout operations
  *
- * Dependencies reduced from 7 (in AuthService) to 5:
+ * Dependencies reduced from 7 (in AuthService) to 6:
  * - AppUserRepository
  * - PasswordEncoder
  * - TokenService
  * - PasswordValidator
  * - PasswordHistoryService
  * - RefreshTokenService
+ * - EmailVerificationService
  *
  * Benefits:
  * - Clear single responsibility (user registration only)
@@ -33,7 +34,8 @@ class UserRegistrationService(
     private val tokenService: TokenService,
     private val passwordValidator: PasswordValidator,
     private val passwordHistoryService: PasswordHistoryService,
-    private val refreshTokenService: RefreshTokenService
+    private val refreshTokenService: RefreshTokenService,
+    private val emailVerificationService: EmailVerificationService
 ) {
 
     private val logger = LoggerFactory.getLogger(UserRegistrationService::class.java)
@@ -74,6 +76,9 @@ class UserRegistrationService(
 
         // Record password in history for future validation
         passwordHistoryService.recordPasswordChange(user.id, passwordHash)
+
+        // Generate email verification token
+        emailVerificationService.generateAndSendVerificationToken(user.id)
 
         // Generate tokens
         val accessToken = tokenService.generateToken(email = user.email, userId = user.id)

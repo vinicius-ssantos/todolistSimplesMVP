@@ -58,11 +58,11 @@ class AuthController(
     @PostMapping("/logout")
     fun logout(
         @RequestHeader("Authorization") authHeader: String,
-        @AuthenticationPrincipal userId: UUID?
+        @AuthenticationPrincipal authUser: AuthUser?
     ): ResponseEntity<Map<String, String>> {
-        requireNotNull(userId) { "User ID not found in authentication context" }
+        requireNotNull(authUser) { "User ID not found in authentication context" }
         val token = authHeader.removePrefix("Bearer ").trim()
-        userLogoutService.logout(userId, token)
+        userLogoutService.logout(authUser.id, token)
         return ResponseEntity.ok(mapOf("message" to "Logged out successfully"))
     }
 
@@ -80,8 +80,8 @@ class AuthController(
 
 
     @PostMapping("/resend-verification")
-    fun resendVerification(@AuthenticationPrincipal userId: UUID): ResponseEntity<Map<String, String>> {
-        emailVerificationService.generateAndSendVerificationToken(userId)
+    fun resendVerification(@AuthenticationPrincipal authUser: AuthUser): ResponseEntity<Map<String, String>> {
+        emailVerificationService.generateAndSendVerificationToken(authUser.id)
         return ResponseEntity.ok(mapOf("message" to "Verification email sent"))
     }
 }

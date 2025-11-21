@@ -26,4 +26,13 @@ class AuthExceptionHandler {
                     path = request.requestURI ?: ""
                 )
             )
+
+    @ExceptionHandler(AccountLockedException::class)
+    fun handleAccountLocked(
+        request: HttpServletRequest,
+        ex: AccountLockedException
+    ): ResponseEntity<Map<String, String>> =
+        ResponseEntity
+            .status(HttpStatus.TOO_MANY_REQUESTS)
+            .body(mapOf("error" to ex.message.orEmpty()))
 }

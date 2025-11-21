@@ -57,7 +57,7 @@ class UserLoginService(
         // Check if account is locked due to too many failed attempts
         if (loginAttemptService.isBlocked(email)) {
             logger.warn("Login attempt for blocked account: {}", email)
-            error("Account temporarily locked due to too many failed attempts. Please try again later.")
+            throw AccountLockedException("Account temporarily locked due to too many failed attempts. Please try again later.")
         }
 
         // Find user

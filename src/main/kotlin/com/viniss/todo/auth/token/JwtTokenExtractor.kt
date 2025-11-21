@@ -114,9 +114,10 @@ class JwtTokenExtractor {
      * Validates the basic structure of a JWT token.
      *
      * @param token The JWT token string
-     * @return true if the token has valid JWT structure (3 parts separated by dots)
+     * @return true if the token has valid JWT structure (3 non-empty parts separated by dots)
      */
     fun hasValidStructure(token: String): Boolean {
-        return token.split(".").size == 3
+        val parts = token.split(".")
+        return parts.size == 3 && parts.all { it.isNotEmpty() }
     }
 }
