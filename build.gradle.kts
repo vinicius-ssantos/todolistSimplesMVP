@@ -61,7 +61,7 @@ dependencies {
 
 
     // OpenAPI UI (opcional, para Swagger mais adiante)
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0")
 
 
 // JWT (jjwt 0.12.x)
