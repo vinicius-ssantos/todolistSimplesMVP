@@ -1,6 +1,36 @@
-.gradle/
+# Build outputs
 build/
+target/
+.gradle/
+bin/
+out/
+
+# IDE
 .idea/
+.vscode/
 *.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
 docs/
-.gradle
+
+# Logs
+*.log
+
+# Test coverage
+coverage/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
