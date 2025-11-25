@@ -39,3 +39,14 @@ out/
 ### Kotlin ###
 .kotlin
 /.claude/settings.local.json
+/logs/application.log
+/logs/application-2025-11-20.log
+/COVERAGE_REPORT.md
+/FINAL_SUMMARY.md
+/REMAINING_FAILURES_ANALYSIS.md
+/logs/security-audit.log
+/logs/security-audit-2025-11-20.log
+/test-output.log
+/test-output-2.log
+/test-summary.md
+/test-verification.log
