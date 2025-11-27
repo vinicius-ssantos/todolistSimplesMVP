@@ -46,3 +46,15 @@ email:
     api-key: ${SENDGRID_API_KEY:}
     default-from: ${SENDGRID_FROM:noreply@todolist.com}
     enabled: ${SENDGRID_ENABLED:false}
+
+app:
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:3001
+      - http://localhost:5173
+      - https://v0.app
+      - https://v0.dev
+    allowed-origin-patterns:
+      - https://*.v0.app
+      - https://*.v0.dev
