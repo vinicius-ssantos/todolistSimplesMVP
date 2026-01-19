@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM gradle:9.2-jdk21 AS build
+FROM gradle:9.3-jdk21 AS build
 WORKDIR /workspace
 
 # Copiar apenas arquivos de configuração do Gradle primeiro
